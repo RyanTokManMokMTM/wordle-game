@@ -77,7 +77,7 @@ func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result s
 		} else {
 			if guessingWord[i] == in[i] {
 				//Current letter is matched and
-				wordCounter[i] -= 1
+				wordCounter[index] -= 1
 				result += "0"
 			} else {
 				//Current letter not matched but in other spot of the guessing word.
