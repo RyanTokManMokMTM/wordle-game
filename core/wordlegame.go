@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"github.com/RyanTokManMokMTM/wordle-game/core/client"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/conf"
 	"github.com/RyanTokManMokMTM/wordle-game/core/internal/config"
+	"github.com/RyanTokManMokMTM/wordle-game/core/internal/logic"
 	"log"
 )
 
@@ -16,4 +18,8 @@ func main() {
 	if err := conf.Load(*configFile, &c); err != nil {
 		log.Fatal(err)
 	}
+
+	player := client.NewClient(c)
+	logic.GameStart(player)
+
 }
