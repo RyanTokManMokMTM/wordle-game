@@ -1,6 +1,9 @@
-package client
+package gameClient
 
-type IClient interface {
+import "net"
+
+type IGameClient interface {
+	HandleRequest()
 	SetWordHistory(string)
 	SetGuessingWord()
 
@@ -8,6 +11,7 @@ type IClient interface {
 	GetWordList() []string
 	GetGuessingWord() string
 	GetWordHistory() []string
+	GetConn() net.Conn
 
 	Reset()
 }

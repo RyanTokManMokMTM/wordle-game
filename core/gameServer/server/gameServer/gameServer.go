@@ -1,0 +1,54 @@
+package gameServer
+
+import (
+	"fmt"
+	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/internal/config"
+	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/server/gameClient"
+
+	"log"
+	"net"
+)
+
+type GameServer struct {
+	host        string
+	port        uint
+	networkType string
+
+	round    uint
+	wordList []string
+}
+
+func NewGameServer(c *config.Config) IGameServer {
+	return &GameServer{
+		host:        c.Host,
+		port:        c.Port,
+		networkType: c.NetworkType,
+		round:       c.Round,
+		wordList:    c.WordList,
+	}
+}
+
+func (gs *GameServer) Listen() error {
+	source := fmt.Sprintf("%s:%d", gs.host, gs.port)
+	listener, err := net.Listen(gs.networkType, source)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		err = listener.Close()
+		log.Fatal(err)
+	}()
+	fmt.Printf("Server listen on %s\n", source)
+	for {
+
+		conn, err := listener.Accept()
+		fmt.Println("A client has been accepted.")
+		if err != nil {
+			fmt.Printf("connection accept error %s\n", err.Error())
+			continue
+		}
+
+		newClient := gameClient.NewGameClient(conn, gs.round, gs.wordList)
+		go newClient.HandleRequest()
+	}
+}
