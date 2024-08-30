@@ -4,8 +4,8 @@ import (
 	"flag"
 	"github.com/RyanTokManMokMTM/wordle-game/core/client"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/conf"
+	"github.com/RyanTokManMokMTM/wordle-game/core/game"
 	"github.com/RyanTokManMokMTM/wordle-game/core/internal/config"
-	"github.com/RyanTokManMokMTM/wordle-game/core/internal/logic"
 	"log"
 )
 
@@ -20,6 +20,6 @@ func main() {
 	}
 
 	player := client.NewClient(c)
-	logic.GameStart(player)
+	game.Start(player)
 
 }
