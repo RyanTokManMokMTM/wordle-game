@@ -13,6 +13,9 @@ import (
 
 // GameStart start a game for that client
 func GameStart(c client.IClient) {
+	fmt.Println("Start a Wordle Game.")
+	fmt.Println("---------------------")
+
 	c.SetGuessingWord()
 	guessingWord := c.GetGuessingWord()
 	wordCounter := make([]uint, 52)
@@ -26,8 +29,7 @@ func GameStart(c client.IClient) {
 	fmt.Println("Current word: ", guessingWord)
 	for _, w := range guessingWord {
 		index := utils.LetterIndexOf(w)
-		fmt.Println(index)
-		if index <= 0 {
+		if index < 0 {
 			log.Fatal("Guessing word must include alphabets only")
 			return
 		}
@@ -35,9 +37,6 @@ func GameStart(c client.IClient) {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Welcome to WorldGame")
-	fmt.Println("---------------------")
-	//
 	for currentRound < totalRound {
 		fmt.Printf("Round %d \n", currentRound+1)
 		fmt.Printf("Input your guessing word : ")
@@ -63,7 +62,8 @@ func GameStart(c client.IClient) {
 
 	fmt.Printf("Game is over, current round guessing word is %s\n", guessingWord)
 	fmt.Printf("Your guess words: %s\n", strings.Join(c.GetWordHistory(), ","))
-
+	fmt.Println("---------------------")
+	c.Reset()
 }
 
 func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result string, isWin bool) {
