@@ -67,17 +67,22 @@ func GameStart(c client.IClient) {
 }
 
 func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result string, isWin bool) {
+	//Due to golang Slice send as a slice addr passing into function
+	//Copy the original wordCounter to a new slice
+	counter := make([]uint, len(wordCounter))
+	copy(counter, wordCounter)
+
 	result = ""
 	isWin = false
 	for i := 0; i < len(guessingWord); i++ {
 		index := utils.LetterIndexOf(rune(in[i]))
-		if wordCounter[index] == 0 {
+		if counter[index] == 0 {
 			//letter not exist in guessing word
 			result += "_"
 		} else {
 			if guessingWord[i] == in[i] {
 				//Current letter is matched and
-				wordCounter[index] -= 1
+				counter[index] -= 1
 				result += "0"
 			} else {
 				//Current letter not matched but in other spot of the guessing word.
