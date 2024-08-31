@@ -28,8 +28,8 @@ func NewGameClient(conn net.Conn, round uint, wordList []string) IGameClient {
 func (gc *GameClient) HandleRequest() {
 	gc.SetGuessingWord()
 	logic.GameLogic(gc.guessingWord, gc.totalRound, gc.conn)
-	fmt.Println("Bye")
-	gc.conn.Close()
+	fmt.Println("Game ended.")
+	//gc.conn.Close()
 }
 
 func (gc *GameClient) SetWordHistory(w string) {

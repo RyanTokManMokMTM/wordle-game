@@ -2,22 +2,28 @@ package client
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/gameClient/internal/config"
 	"log"
 	"net"
 	"os"
 	"strings"
+	"sync"
 )
 
 type Client struct {
+	sync.Once
 	host        string
 	port        uint
 	networkType string
 
-	conn  net.Conn
-	close chan struct{}
-	input chan struct{}
+	conn     net.Conn
+	close    chan struct{}
+	writable chan struct{}
 }
 
 func NewClient(c config.Config) IClient {
@@ -26,7 +32,7 @@ func NewClient(c config.Config) IClient {
 		port:        c.Port,
 		networkType: c.NetworkType,
 		close:       make(chan struct{}),
-		input:       make(chan struct{}),
+		writable:    make(chan struct{}), //Be able to write
 	}
 }
 
@@ -38,9 +44,8 @@ func (c *Client) Run() {
 		log.Fatal(err)
 	}
 	defer func() {
-		if err := c.conn.Close(); err != nil {
-			log.Fatal(err)
-		}
+		close(c.close)    // Close the channel
+		close(c.writable) //Close the channel
 	}()
 
 	fmt.Println("Start a Wordle Game.")
@@ -51,43 +56,90 @@ func (c *Client) Run() {
 
 	select {
 	case <-c.close:
+		log.Println("connection closing...")
 		return
 	}
 
 }
 
+func (c *Client) Close() {
+	c.Once.Do(func() {
+		//TODO: to run it once only
+		c.close <- struct{}{}
+		if err := c.conn.Close(); err != nil {
+			log.Println(err)
+		}
+	})
+}
+
 func (c *Client) read() {
+	defer func() {
+		c.Close()
+	}()
+
 	for {
-		data := make([]byte, 256)
-		_, err := c.conn.Read(data)
-		if err != nil {
-			c.close <- struct{}{}
+		var msgLen uint32
+		if err := binary.Read(c.conn, binary.BigEndian, &msgLen); err != nil {
+			log.Println("binary reading error :", err)
 			return
 		}
 
-		fmt.Print(string(data))
+		data := make([]byte, msgLen)
+		_, err := c.conn.Read(data)
+		if err != nil {
+			log.Println("reading error :", err)
+			return
+		}
+
+		var msg *packet.Packet
+		if err := serializex.Unmarshal(data, &msg); err != nil {
+			log.Print("json err :", err)
+			return
+		}
+
+		c.handleServerEvent(*msg)
 	}
 
 }
 
 func (c *Client) write() {
-	reader := bufio.NewReader(os.Stdin)
+	//TODO: allowing input from user when receiving an write signed?
+	defer func() {
+		c.Close()
+	}()
+
 	for {
+		_, ok := <-c.writable
+		if !ok {
+			return
+		}
+		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			c.close <- struct{}{}
+			log.Println("reading input error :", err)
 			return
 		}
 		inputInfo := strings.Trim(input, "\r\n")
-		if strings.ToUpper(inputInfo) == "Q" {
-			c.close <- struct{}{}
-			return
-		}
 
-		_, err = c.conn.Write([]byte(input))
+		_, err = c.conn.Write([]byte(inputInfo))
 		if err != nil {
-			c.close <- struct{}{}
+			log.Println("write input error :", err)
 			return
 		}
+	}
+}
+
+//Define some function for different event
+
+func (c *Client) handleServerEvent(serverMsg packet.Packet) {
+	switch serverMsg.PacketType {
+	case packetType.IN_GAME:
+		fmt.Print(string(serverMsg.GameMessage))
+		if serverMsg.IsWritable {
+			c.writable <- struct{}{} // be able to input...
+		}
+	default:
+		log.Println("Packet not supported")
+		return
 	}
 }
