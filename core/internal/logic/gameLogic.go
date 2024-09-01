@@ -72,24 +72,47 @@ func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result s
 	counter := make([]uint, len(wordCounter))
 	copy(counter, wordCounter)
 
-	result = ""
+	size := len(guessingWord)
+	temp := []byte("_____")
 	isWin = false
+
+	/*
+		Explain:
+		If guessing word is "WORLD", user input is "HELLO"
+		According to the algorithm which is using a counter.
+		"WORLD" has only 1 letter 'L', "HELLO" have 2 letter 'L'
+		The expected answers will be '___0?'
+
+		If we're using 1 loop to handle this case, the answer is unexpected, which is '__?_?'
+
+		To solve this issue:
+		1. handling the correct letter and correct spot cases ,and updating the counter list
+		2. handling the other case
+	*/
+	//TODO: handling the correct letter and correct spot and updating the counter list
+	for i := 0; i < size; i++ {
+		index := utils.LetterIndexOf(rune(in[i]))
+		if counter[index] == 0 {
+			continue
+		}
+
+		if in[i] == guessingWord[i] {
+			counter[index] -= 1
+			temp[i] = '0'
+		}
+
+	}
+
+	//TODO: Handling the other case
 	for i := 0; i < len(guessingWord); i++ {
 		index := utils.LetterIndexOf(rune(in[i]))
 		if counter[index] == 0 {
-			//letter not exist in guessing word
-			result += "_"
-		} else {
-			if guessingWord[i] == in[i] {
-				//Current letter is matched and
-				counter[index] -= 1
-				result += "0"
-			} else {
-				//Current letter not matched but in other spot of the guessing word.
-				result += "?"
-			}
+			continue
 		}
+		temp[i] = '?'
 	}
+
+	result = string(temp)
 	if strings.Compare(result, "00000") == 0 {
 		isWin = true
 	}
