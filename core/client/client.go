@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/RyanTokManMokMTM/wordle-game/core/internal/config"
+	"log"
 	"math/rand"
 )
 
@@ -25,8 +26,17 @@ func (c *Client) SetWordHistory(w string) {
 }
 
 func (c *Client) SetGuessingWord() {
-	rand.NewSource(0)
 	maxLen := len(c.GetWordList()) - 1
+	if maxLen < 0 {
+		log.Fatal("word list is empty")
+	}
+
+	if maxLen == 0 {
+		c.guessingWord = c.wordList[0]
+		return
+	}
+
+	rand.NewSource(0)
 	index := rand.Intn(maxLen)
 	c.guessingWord = c.wordList[index]
 }
