@@ -3,6 +3,7 @@ package gameClient
 import (
 	"fmt"
 	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/internal/logic"
+	"log"
 	"math/rand"
 	"net"
 )
@@ -37,8 +38,17 @@ func (gc *GameClient) SetWordHistory(w string) {
 }
 
 func (gc *GameClient) SetGuessingWord() {
-	rand.NewSource(0)
 	maxLen := len(gc.GetWordList()) - 1
+	if maxLen < 0 {
+		log.Fatal("word list is empty")
+	}
+
+	if maxLen == 0 {
+		gc.guessingWord = gc.wordList[0]
+		return
+	}
+
+	rand.NewSource(0)
 	index := rand.Intn(maxLen)
 	gc.guessingWord = gc.wordList[index]
 }
