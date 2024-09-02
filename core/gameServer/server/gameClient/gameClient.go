@@ -30,7 +30,7 @@ func (gc *GameClient) HandleRequest() {
 	gc.SetGuessingWord()
 	logic.GameLogic(gc.guessingWord, gc.totalRound, gc.conn)
 	fmt.Println("Game ended.")
-	//gc.conn.Close()
+	gc.conn.Close()
 }
 
 func (gc *GameClient) SetWordHistory(w string) {

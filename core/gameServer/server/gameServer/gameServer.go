@@ -13,9 +13,9 @@ type GameServer struct {
 	host        string
 	port        uint
 	networkType string
-
-	round    uint
-	wordList []string
+	listener    net.Listener
+	round       uint
+	wordList    []string
 }
 
 func NewGameServer(c *config.Config) IGameServer {
@@ -30,18 +30,21 @@ func NewGameServer(c *config.Config) IGameServer {
 
 func (gs *GameServer) Listen() error {
 	source := fmt.Sprintf("%s:%d", gs.host, gs.port)
-	listener, err := net.Listen(gs.networkType, source)
+	var err error
+	gs.listener, err = net.Listen(gs.networkType, source)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
-		err = listener.Close()
-		log.Fatal(err)
+		err = gs.listener.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}()
 	fmt.Printf("Server listen on %s\n", source)
 	for {
 
-		conn, err := listener.Accept()
+		conn, err := gs.listener.Accept()
 		fmt.Println("A client has been accepted.")
 		if err != nil {
 			fmt.Printf("connection accept error %s\n", err.Error())
@@ -51,4 +54,10 @@ func (gs *GameServer) Listen() error {
 		newClient := gameClient.NewGameClient(conn, gs.round, gs.wordList)
 		go newClient.HandleRequest()
 	}
+
+}
+
+func (gs *GameServer) Close() error {
+	fmt.Println("Server is closing.")
+	return gs.listener.Close()
 }

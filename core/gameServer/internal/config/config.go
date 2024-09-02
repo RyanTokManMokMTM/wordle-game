@@ -1,9 +1,9 @@
 package config
 
-import conf "github.com/RyanTokManMokMTM/wordle-game/core/common/types"
+import "github.com/RyanTokManMokMTM/wordle-game/core/common/types/config"
 
 type Config struct {
-	conf.ServerConf `yaml:",inline"`
-	Round           uint     `yaml:"round"`
-	WordList        []string `yaml:"wordList"`
+	config.ServerConf `yaml:",inline"`
+	Round             uint     `yaml:"round"`
+	WordList          []string `yaml:"wordList"`
 }
