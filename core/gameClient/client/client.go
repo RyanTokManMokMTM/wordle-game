@@ -3,11 +3,13 @@ package client
 import (
 	"bufio"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/gameClient/internal/config"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -21,9 +23,10 @@ type Client struct {
 	port        uint
 	networkType string
 
-	conn     net.Conn
-	close    chan struct{}
-	writable chan struct{}
+	conn        net.Conn
+	close       chan struct{}
+	writable    chan struct{}
+	messageChan chan []byte
 }
 
 func NewClient(c config.Config) IClient {
@@ -33,6 +36,7 @@ func NewClient(c config.Config) IClient {
 		networkType: c.NetworkType,
 		close:       make(chan struct{}),
 		writable:    make(chan struct{}), //Be able to write
+		messageChan: make(chan []byte),
 	}
 }
 
@@ -54,10 +58,29 @@ func (c *Client) Run() {
 	go c.read()
 	go c.write()
 
-	select {
-	case <-c.close:
-		log.Println("connection closing...")
-		return
+	c.onListen()
+
+}
+func (c *Client) onListen() {
+	for {
+		select {
+		case <-c.close:
+			log.Println("connection closing...")
+			return
+		case data, ok := <-c.messageChan:
+			if !ok {
+				log.Fatal("Message channel is closed.")
+				return
+			}
+			var msg *packet.Packet
+			if err := serializex.Unmarshal(data, &msg); err != nil {
+				log.Print("json err :", err)
+				return
+			}
+
+			c.handleServerEvent(*msg)
+			break
+		}
 	}
 
 }
@@ -80,7 +103,9 @@ func (c *Client) read() {
 	for {
 		var msgLen uint32
 		if err := binary.Read(c.conn, binary.BigEndian, &msgLen); err != nil {
-			log.Println("binary reading error :", err)
+			if !errors.Is(err, io.EOF) {
+				log.Println("binary reading error :", err)
+			}
 			return
 		}
 
@@ -90,14 +115,7 @@ func (c *Client) read() {
 			log.Println("reading error :", err)
 			return
 		}
-
-		var msg *packet.Packet
-		if err := serializex.Unmarshal(data, &msg); err != nil {
-			log.Print("json err :", err)
-			return
-		}
-
-		c.handleServerEvent(*msg)
+		c.messageChan <- data
 	}
 
 }
@@ -129,8 +147,7 @@ func (c *Client) write() {
 	}
 }
 
-//Define some function for different event
-
+// Define some function for different event
 func (c *Client) handleServerEvent(serverMsg packet.Packet) {
 	switch serverMsg.PacketType {
 	case packetType.IN_GAME:
