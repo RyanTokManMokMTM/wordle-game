@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/conf"
+	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/core/gameServer"
 	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/internal/config"
-	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/server/gameServer"
 	"log"
 )
 
