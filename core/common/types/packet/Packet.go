@@ -2,24 +2,95 @@ package packet
 
 import "github.com/google/uuid"
 
-type Packet struct {
+type BasicPacket struct {
 	PacketId   string `json:"packet_id"`
 	PacketType string `json:"packet_type"`
-	GamePacket
+	Data       []byte `json:"data"` //Decode by to the packet type
 }
 
-type GamePacket struct {
-	IsWritable  bool   `json:"is_writable"` //Indicate user need to performance an input action
-	GameMessage []byte `json:"game_message"`
-}
-
-func NewPacket(msgType string, IsWritable bool, gameMessage string) Packet {
-	return Packet{
+func NewPacket(pkType string, data []byte) *BasicPacket {
+	return &BasicPacket{
 		PacketId:   uuid.NewString(),
-		PacketType: msgType,
-		GamePacket: GamePacket{
-			IsWritable:  IsWritable,
-			GameMessage: []byte(gameMessage),
-		},
+		PacketType: pkType,
+		Data:       data,
 	}
 }
+
+type EstablishReq struct {
+	PlayerName string `json:"user_name"`
+}
+
+type EstablishResp struct {
+	UserId string `json:"user_id"`
+	Name   string `json:"user_name"`
+}
+
+type CreateRoomReq struct {
+	UserId    string   `json:"user_id"`
+	RoomName  string   `json:"room_name"`
+	MinPlayer uint     `json:"min_player"`
+	MaxPlayer uint     `json:"max_player"`
+	WordList  []string `json:"word_list"`
+}
+
+type CreateRoomResp struct {
+	Code uint `json:"code"`
+	GameRoomInfoPacket
+}
+
+type JoinRoomReq struct {
+	UserId string `json:"user_id"`
+	RoomId string `json:"room_id"`
+}
+
+type JoinRoomResp struct {
+	Code uint `json:"code"`
+	GameRoomInfoPacket
+}
+
+type ExitRoomReq struct {
+	UserId string `json:"user_id"`
+	RoomId string `json:"room_id"`
+}
+
+type ExitRoomResp struct {
+	Code uint `json:"code"`
+}
+
+type RoomListInfoResp struct {
+	Code  uint                 `json:"code"`
+	Rooms []GameRoomInfoPacket `json:"rooms"`
+}
+
+type GetSessionInfoReq struct {
+	UserId string `json:"user_id"`
+	RoomId string `json:"room_id"`
+}
+
+type GetSessionInfoResp struct {
+	Code uint `json:"code"`
+	GameRoomInfoPacket
+}
+
+type GameRoomInfoPacket struct {
+	RoomId            string `json:"room_id"`
+	RoomName          string `json:"room_name"`
+	RoomHostName      string `json:"room_host_name"`
+	RoomHostId        string `json:"room_host_id"`
+	RoomMinPlayer     uint   `json:"room_min_player"`
+	RoomCurrentPlayer uint   `json:"room_current_player"`
+	RoomMaxPlayer     uint   `json:"room_max_player"`
+
+	RoomStatus string `json:"room_status"`
+}
+
+//type Packet struct {
+//	PacketId   string `json:"packet_id"`
+//	PacketType string `json:"packet_type"`
+//	GamePacket
+//}
+//
+//type GamePacket struct {
+//	IsWritable  bool   `json:"is_writable"` //Indicate user need to performance an input action
+//	GameMessage []byte `json:"game_message"`
+//}
