@@ -6,6 +6,6 @@ type IGameSessionManager interface {
 	SetGameSession(sessionId string, session gameSession.IGameSession)
 	RemoveGameSession(sessionId string)
 
-	GetGameSession(sessionId string) (*gameSession.IGameSession, bool)
+	GetGameSession(sessionId string) (gameSession.IGameSession, bool)
 	GetGameSessionList() []gameSession.IGameSession
 }

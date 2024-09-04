@@ -17,7 +17,7 @@ func main() {
 	if err := conf.Load(*configFile, &c); err != nil {
 		log.Fatal(err)
 	}
+
 	gameClient := client.NewClient(c)
 	gameClient.Run()
-
 }

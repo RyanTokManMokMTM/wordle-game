@@ -34,12 +34,12 @@ func (gcm *GameClientManager) RemoveGameClient(clientId string) {
 	}
 }
 
-func (gcm *GameClientManager) GetGameClient(sessionId string) (*gameClient.IGameClient, bool) {
-	s, ok := gcm.clients[sessionId]
+func (gcm *GameClientManager) GetGameClient(clientId string) (gameClient.IGameClient, bool) {
+	s, ok := gcm.clients[clientId]
 	if !ok {
 		return nil, false
 	}
-	return &s, true
+	return s, true
 }
 
 func (gcm *GameClientManager) GetGameClientList() []gameClient.IGameClient {

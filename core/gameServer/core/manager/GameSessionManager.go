@@ -33,13 +33,14 @@ func (gsm *GameSessionManager) RemoveGameSession(sessionId string) {
 		delete(gsm.sessions, sessionId)
 	}
 }
-func (gsm *GameSessionManager) GetGameSession(sessionId string) (*gameSession.IGameSession, bool) {
+func (gsm *GameSessionManager) GetGameSession(sessionId string) (gameSession.IGameSession, bool) {
 	s, ok := gsm.sessions[sessionId]
 	if !ok {
 		return nil, false
 	}
-	return &s, true
+	return s, true
 }
+
 func (gsm *GameSessionManager) GetGameSessionList() []gameSession.IGameSession {
 	sessionList := make([]gameSession.IGameSession, 0)
 	for _, s := range gsm.sessions {

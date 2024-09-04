@@ -8,6 +8,6 @@ type IGameClientManager interface {
 	SetGameClient(clientId string, client gameClient.IGameClient)
 	RemoveGameClient(clientId string)
 
-	GetGameClient(sessionId string) (*gameClient.IGameClient, bool)
+	GetGameClient(clientId string) (gameClient.IGameClient, bool)
 	GetGameClientList() []gameClient.IGameClient
 }

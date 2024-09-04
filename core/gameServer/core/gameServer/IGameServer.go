@@ -4,5 +4,5 @@ type IGameServer interface {
 	Listen() error
 	Close() error
 
-	EventListener()
+	eventListener()
 }
