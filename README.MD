@@ -16,10 +16,14 @@
 ---
 ### How to start the game
 1. Clone the project
-> git clone https://github.com/RyanTokManMokMTM/wordle-game.git
+```
+1. git clone https://github.com/RyanTokManMokMTM/wordle-game.git
+```
 
 2. Download the package
-> go mod download
+```
+2. go mod download
+```
 
 3. (Optinal) Update the config setting
 ```
@@ -27,7 +31,9 @@ core/etc
 ```
 
 4. Go into `core` folder and run the command
-> go run wordlegame.go
+```
+4. go run wordlegame.go
+```
 
 5. Enjoy!
 
