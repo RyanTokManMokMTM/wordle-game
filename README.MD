@@ -14,6 +14,7 @@
 - **GameOver** / **Win** - show the **answer**
 
 ---
+![screenCap](./demo/screen.png)
 ### How to start the game
 
 1. Clone the project
@@ -22,20 +23,47 @@
 2. Download the package
 > go mod download
 
-3. Go into `core` folder and run the command
-> go run wordlegame.go
+3. (Optinal) Update the config setting
+```
+1. Client - `core/client/etc`
+2. Server - `core/server/etc`
+```
 
-4. Enjoy!
+4. Go into `core/server` folder and run the command to start up the server
+> go run server.go
+
+5.Go into `core/client` folder and run the command to start up the client
+> go run client.go
+
+6. Enjoy!
+
+### How to play
+1. Create a new room from host(Client A)
+2. Join the room created room(Client B)
+3. Host start the game
+
+[demo video](./demo/demo.mp4)
 
 ---
 
 ### File structure
-├── client     # client interface & implementation       
-├── common     # Tools and utilities                 
-├── etc        # Config file  
-├── game       # Game Start entry point         
-├── internal   # Core Logic             
-└── README.md  # Doc
+```
+.  
+├── client                 # client-side code, file and logic        
+├──── client               # client interface & implementation   
+├──── etc                  # config file  
+├──── game                 # game entire point    
+├──── internal             # client logic and internal file
+├──── render               # render CMD UI  
+├── common                 # Tools and utilities
+├── server                 # Game Start entry point  
+├──── core                 # server/game interface & implementation   
+├──── etc                  # config file  
+├──── game                 # game entire point    
+├──── internal             # client logic and internal file
+├──── render               # render CMD UI  
+└── README.md              # Doc
+```
 
 ### Core implementation
 #### guessingWordChecking   
