@@ -15,15 +15,15 @@ const (
 	//To Get room list
 	ROOM_LIST_INFO = "ROOM_LIST_INFO"
 
-	//To share game information
-	GET_SESSION_INFO = "GET_SESSION_INFO"
-
 	//Start the game
 	START_GAME = "START_GAME"
 
-	//Update game status
-	UPDATE_GAME_STATUS = "UPDATE_GAME_STATUS"
-
 	//End the game
 	END_GAME = "END_GAME"
+
+	//Playing the game
+	PLAYING_GAME = "PLAYING_GAME"
+
+	//Notify player
+	GAME_NOTIFICATION = "GAME_NOTIFICATION"
 )

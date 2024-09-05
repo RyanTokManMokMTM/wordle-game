@@ -26,11 +26,9 @@ type EstablishResp struct {
 }
 
 type CreateRoomReq struct {
-	UserId    string   `json:"user_id"`
-	RoomName  string   `json:"room_name"`
-	MinPlayer uint     `json:"min_player"`
-	MaxPlayer uint     `json:"max_player"`
-	WordList  []string `json:"word_list"`
+	UserId   string   `json:"user_id"`
+	RoomName string   `json:"room_name"`
+	WordList []string `json:"word_list"`
 }
 
 type CreateRoomResp struct {
@@ -57,40 +55,54 @@ type ExitRoomResp struct {
 	Code uint `json:"code"`
 }
 
-type RoomListInfoResp struct {
+type GetRoomListInfoReq struct {
+	UserId string `json:"user_id"`
+}
+
+type GetRoomListInfoResp struct {
 	Code  uint                 `json:"code"`
 	Rooms []GameRoomInfoPacket `json:"rooms"`
 }
 
-type GetSessionInfoReq struct {
+type GetRoomInfoReq struct {
 	UserId string `json:"user_id"`
 	RoomId string `json:"room_id"`
 }
 
-type GetSessionInfoResp struct {
+type GetRoomInfoResp struct {
 	Code uint `json:"code"`
 	GameRoomInfoPacket
 }
 
 type GameRoomInfoPacket struct {
-	RoomId            string `json:"room_id"`
-	RoomName          string `json:"room_name"`
-	RoomHostName      string `json:"room_host_name"`
-	RoomHostId        string `json:"room_host_id"`
-	RoomMinPlayer     uint   `json:"room_min_player"`
-	RoomCurrentPlayer uint   `json:"room_current_player"`
-	RoomMaxPlayer     uint   `json:"room_max_player"`
+	RoomId       string `json:"room_id"`
+	RoomName     string `json:"room_name"`
+	RoomHostName string `json:"room_host_name"`
+	RoomHostId   string `json:"room_host_id"`
 
 	RoomStatus string `json:"room_status"`
 }
 
-//type Packet struct {
-//	PacketId   string `json:"packet_id"`
-//	PacketType string `json:"packet_type"`
-//	GamePacket
-//}
-//
-//type GamePacket struct {
-//	IsWritable  bool   `json:"is_writable"` //Indicate user need to performance an input action
-//	GameMessage []byte `json:"game_message"`
-//}
+type GameStartReq struct {
+	RoomId string `json:"room_id"`
+}
+
+type PlayingGameReq struct {
+	Input []byte `json:"input"`
+}
+
+type PlayingGameResp struct {
+	OutputColorASNI string `json:"output_color_asni"`
+	IsWritable      bool   `json:"is_writable"` //Indicate user need to performance an input action
+	GameMessage     []byte `json:"game_message"`
+}
+
+type NotifyPlayer struct {
+	Message []byte `json:"message"`
+}
+
+type EndingGameResp struct {
+	OutputColorASNI string `json:"output_color_asni"`
+	RoomId          string `json:"room_id"`
+	Message         []byte `json:"message"`
+}

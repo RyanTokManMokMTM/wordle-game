@@ -6,6 +6,7 @@ import (
 )
 
 func SendMessage(conn net.Conn, pkData []byte) error {
+
 	msgLen := uint32(len(pkData))
 	err := binary.Write(conn, binary.BigEndian, msgLen)
 	if err != nil {

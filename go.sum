@@ -1,5 +1,9 @@
+github.com/brettski/go-termtables v0.0.0-20190907034855-12ddd59af020 h1:0AI3Zj64u2rpzmOrt4u3KUuw97KrMs6mcwNSaM3Rp5c=
+github.com/brettski/go-termtables v0.0.0-20190907034855-12ddd59af020/go.mod h1:m1lFPe1dlzu0nXHuCQVG/w2EeQNMA6h1MAaFLwUYAIM=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/mattn/go-runewidth v0.0.3-0.20170201023540-14207d285c6c h1:jQ6tSGsM/2TGhmbzHl9wXDtm2YjZDAfMsHyxaBDwywA=
+github.com/mattn/go-runewidth v0.0.3-0.20170201023540-14207d285c6c/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

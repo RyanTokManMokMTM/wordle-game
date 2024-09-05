@@ -1,0 +1,13 @@
+package renderEvent
+
+const (
+	INIT_PAGE         = "INIT_PAGE"
+	HOME_PAGE         = "HOME_PAGE"
+	CREATE_ROOM       = "CREATE_ROOM"
+	ROOM_LIST_PAGE    = "ROOM_LIST_PAGE"
+	JOIN_ROOM         = "JOIN_ROOM"
+	START_GAME        = "START_GAME"
+	GAME_PAGE         = "GAME_PAGE"
+	GAME_NOTIFICATION = "GAME_NOTIFICATION"
+	ENED_GAME         = "ENDED_GAME"
+)

@@ -1,7 +1,6 @@
 package status
 
 const (
-	SESSION_WAITING = "SESSION_WAITING"
-	SESSION_PLAYING = "SESSION_PLAYING"
-	SESSION_ENDING  = "SESSION_ENDING"
+	ROOM_STAUS_WAITING = "Waiting to start"
+	ROOM_STAUS_PLAYING = "Started the game"
 )
