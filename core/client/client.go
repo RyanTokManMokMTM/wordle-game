@@ -19,6 +19,7 @@ func NewClient(c config.Config) IClient {
 func (c *Client) GetTotalRound() uint {
 	return c.totalRound
 }
+
 func (c *Client) GetWordList() []string {
 	return c.wordList
 }
