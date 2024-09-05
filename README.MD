@@ -38,7 +38,7 @@
 └── README.md  # Doc
 
 ### Core implementation
-#### guessingWordChecking   
+#### guessingWordChecking  logic
 > Using a array to indicated there is/are alphabets included in the **guessing word**
 - Array size: [a-z][A-Z] , total 52
 - Index calculation: according to the ascii code table, `'a'-'a'=0` ,so `arr[0]` =`'a'`, `arr[1]`= `'b'`, `arr[2]` = `'c'` ,`a[26]`=`'A'`, `a[27]`=`'B'`,etc
@@ -60,3 +60,11 @@ for i := 0; i < size; i++ {
     }
 }
 ```
+---
+#### hostCheatingGameChecking logic
+1. Comparing user input and the candidate list - `processGameResultAndScore`
+2. According to the result(How many `HIT`/`PRESENT`/`MISS`) from `processGameResultAndScore`, and finding current lowest score of the candidate list
+3. According to the lowest score, filtering the score is larger than the lowest score and update the candidate list
+4. Due to coexisting result issue, filtering results which is/are not the same result.
+   > For example: `_?___`, `__?__`. Both are 1 present score, but they are not the same, so we need to select either one of them
+5. Continue this process until only one candidate is left.
