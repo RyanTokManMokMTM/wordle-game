@@ -8,7 +8,6 @@ import (
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/status"
-	utils "github.com/RyanTokManMokMTM/wordle-game/core/common/utils"
 	"github.com/RyanTokManMokMTM/wordle-game/core/server/core/gameClient"
 	"github.com/RyanTokManMokMTM/wordle-game/core/server/core/gamePlayer"
 	"github.com/RyanTokManMokMTM/wordle-game/core/server/core/gameRoom"
@@ -225,19 +224,8 @@ func (gs *GameServer) eventListener() {
 				log.Println(err)
 				return
 			}
-
-			pk := packet.NewPacket(packetType.END_GAME, dataBytes)
-			dataBytes, err = serializex.Marshal(&pk)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
 			for _, p := range players {
-				if err := utils.SendMessage(p.GetClient().GetConn(), dataBytes); err != nil {
-					log.Println(err)
-					continue
-				}
+				p.GetClient().SendToClient(packetType.END_GAME, dataBytes)
 			}
 
 		}
@@ -247,7 +235,7 @@ func (gs *GameServer) eventListener() {
 func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 	pkType := pk.PacketType
 	pkData := pk.Data
-	log.Println(pkType)
+
 	switch pkType {
 	case packetType.CREATE_ROOM:
 		//Create a new room by user
@@ -261,7 +249,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		log.Printf("%+v", createRoomReq)
 
 		//MARK: Get User Client by id
-		hostUser, ok := gs.clientManager.GetGameClient(createRoomReq.UserId)
+		u, ok := gs.clientManager.GetGameClient(createRoomReq.UserId)
 		if !ok {
 			log.Printf("Client %s not exist\n", createRoomReq.UserId)
 			return
@@ -269,17 +257,17 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 
 		roomWordList := make([]string, 0)
 		copy(roomWordList, gs.wordList)
-		log.Printf("%+v", createRoomReq)
+
 		roomWordList = append(gs.wordList, createRoomReq.WordList...)
 
-		player := gamePlayer.NewPlayer(hostUser)
+		player := gamePlayer.NewPlayer(u)
 		newRoom := gameRoom.NewGameRoom(
 			player,
 			createRoomReq.RoomName,
 			roomWordList,
 			gs.round)
 
-		newRoom.AddPlayer(hostUser.GetClientId(), player)
+		newRoom.AddPlayer(u.GetClientId(), player)
 		gs.roomManager.SetGameRoom(newRoom.GetRoomId(), newRoom)
 		host := newRoom.GetRoomHost()
 		roomName := newRoom.GetRoomName()
@@ -303,20 +291,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-
-		respPacket := packet.NewPacket(packetType.CREATE_ROOM, dataBytes)
-
-		dataBytes, err = serializex.Marshal(&respPacket)
-		if err != nil {
-			log.Println("Serialized packet error : ", err)
-			return
-		}
-
-		log.Println("sending response to client")
-		if err := utils.SendMessage(host.GetClient().GetConn(), dataBytes); err != nil {
-			log.Println(err)
-			return
-		}
+		u.SendToClient(packetType.CREATE_ROOM, dataBytes)
 		break
 	case packetType.ROOM_LIST_INFO:
 		log.Println("Received an message of create room")
@@ -356,21 +331,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-
-		respPacket := packet.NewPacket(packetType.ROOM_LIST_INFO, dataBytes)
-
-		dataBytes, err = serializex.Marshal(&respPacket)
-		if err != nil {
-			log.Println("Serialized packet error : ", err)
-			return
-		}
-
-		log.Println("sending response to client")
-		if err := utils.SendMessage(u.GetConn(), dataBytes); err != nil {
-			log.Println(err)
-			return
-		}
-
+		u.SendToClient(packetType.ROOM_LIST_INFO, dataBytes)
 		break
 	case packetType.JOIN_ROOM:
 		//Join to an existing room
@@ -419,19 +380,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-
-		respPacket := packet.NewPacket(packetType.JOIN_ROOM, dataBytes)
-
-		dataBytes, err = serializex.Marshal(&respPacket)
-		if err != nil {
-			log.Println("Serialized packet error : ", err)
-			return
-		}
-
-		if err := utils.SendMessage(u.GetConn(), dataBytes); err != nil {
-			log.Println(err)
-			return
-		}
+		u.SendToClient(packetType.JOIN_ROOM, dataBytes)
 
 		for _, p := range room.GetAllPlayer() {
 			if strings.Compare(p.GetClient().GetClientId(), u.GetClientId()) != 0 {
@@ -466,14 +415,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			return
 		}
 
-		respPacket := packet.NewPacket(packetType.EXIT_ROOM, dataBytes)
-
-		dataBytes, err = serializex.Marshal(&respPacket)
-		if err != nil {
-			log.Println("Serialized packet error : ", err)
-			return
-		}
-
 		room, ok := gs.roomManager.GetGameRoom(exitRoomReq.RoomId)
 		if !ok {
 			log.Printf("Room %s not exist or removed\n", exitRoomReq.RoomId)
@@ -481,10 +422,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		}
 
 		room.RemovePlayer(u.GetClientId())
-		if err := utils.SendMessage(u.GetConn(), dataBytes); err != nil {
-			log.Println(err)
-			return
-		}
+		u.SendToClient(packetType.EXIT_ROOM, dataBytes)
 
 		if len(room.GetAllPlayer()) == 0 {
 			log.Println("Empty player")
@@ -514,12 +452,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Room not found")
 			return
 		}
-		pk := packet.NewPacket(packetType.START_GAME, pk.Data)
-		dataBytes, err := serializex.Marshal(&pk)
-		if err != nil {
-			log.Println(err)
-			return
-		}
 
 		s.SetGuessingWord()
 		s.SetRoomStatus(status.ROOM_STAUS_PLAYING)
@@ -527,10 +459,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		players := s.GetAllPlayer()
 
 		for _, p := range players {
-			if err := utils.SendMessage(p.GetClient().GetConn(), dataBytes); err != nil {
-				log.Println(err)
-				continue
-			}
+			p.GetClient().SendToClient(packetType.START_GAME, pk.Data)
 			go s.StartGame(p) //All User start at same time
 		}
 

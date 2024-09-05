@@ -188,6 +188,7 @@ func (c *Client) write() {
 					log.Fatal(err)
 					return
 				}
+
 				pk := packet.NewPacket(packetType.PLAYING_GAME, dataBytes)
 				pkData, err := serializex.Marshal(&pk)
 				if err != nil {
@@ -302,7 +303,7 @@ func (c *Client) handleServerEvent(pk packet.BasicPacket) {
 	}
 }
 
-func (c *Client) SendRequest(pkgType string, data []byte) {
+func (c *Client) SendToServer(pkgType string, data []byte) {
 	switch pkgType {
 	case packetType.ESTABLISH:
 		fallthrough
@@ -315,9 +316,9 @@ func (c *Client) SendRequest(pkgType string, data []byte) {
 	case packetType.START_GAME:
 		fallthrough
 	case packetType.EXIT_ROOM:
-		newPk := packet.NewPacket(pkgType, data)
+		pk := packet.NewPacket(pkgType, data)
 
-		dataBytes, err := serializex.Marshal(&newPk)
+		dataBytes, err := serializex.Marshal(&pk)
 		if err != nil {
 			log.Println(err)
 			return

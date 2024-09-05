@@ -46,7 +46,7 @@ func (rd *Render) onListen() {
 						log.Fatal(err)
 						return
 					}
-					rd.c.SendRequest(packetType.ESTABLISH, dataBytes)
+					rd.c.SendToServer(packetType.ESTABLISH, dataBytes)
 				})
 				break
 			case renderEvent.HOME_PAGE:
@@ -65,7 +65,7 @@ func (rd *Render) onListen() {
 							log.Fatal(err)
 							return
 						}
-						rd.c.SendRequest(packetType.CREATE_ROOM, dataBytes)
+						rd.c.SendToServer(packetType.CREATE_ROOM, dataBytes)
 					})
 				case 2:
 					getRoomListReq := packet.GetRoomListInfoReq{
@@ -78,7 +78,7 @@ func (rd *Render) onListen() {
 						return
 					}
 
-					rd.c.SendRequest(packetType.ROOM_LIST_INFO, dataBytes)
+					rd.c.SendToServer(packetType.ROOM_LIST_INFO, dataBytes)
 				default:
 					fmt.Println(color.Red + "Not supported" + color.Reset)
 					os.Exit(0)
@@ -99,7 +99,7 @@ func (rd *Render) onListen() {
 							return
 						}
 
-						rd.c.SendRequest(packetType.EXIT_ROOM, dataBytes)
+						rd.c.SendToServer(packetType.EXIT_ROOM, dataBytes)
 					case 1:
 						gameStartReq := packet.GameStartReq{
 							RoomId: roomId,
@@ -111,7 +111,7 @@ func (rd *Render) onListen() {
 							return
 						}
 
-						rd.c.SendRequest(packetType.START_GAME, dataBytes)
+						rd.c.SendToServer(packetType.START_GAME, dataBytes)
 					default:
 						fmt.Println(color.Red + "Not supported" + color.Reset)
 						os.Exit(0)
@@ -137,7 +137,7 @@ func (rd *Render) onListen() {
 						return
 					}
 
-					rd.c.SendRequest(packetType.JOIN_ROOM, dataBytes)
+					rd.c.SendToServer(packetType.JOIN_ROOM, dataBytes)
 				})
 				break
 			case renderEvent.JOIN_ROOM:
@@ -155,7 +155,7 @@ func (rd *Render) onListen() {
 							return
 						}
 
-						rd.c.SendRequest(packetType.EXIT_ROOM, dataBytes)
+						rd.c.SendToServer(packetType.EXIT_ROOM, dataBytes)
 					default:
 						fmt.Println("Create room host mode not support")
 						os.Exit(0)
@@ -185,7 +185,7 @@ func (rd *Render) onListen() {
 						return
 					}
 
-					rd.c.SendRequest(packetType.EXIT_ROOM, dataBytes)
+					rd.c.SendToServer(packetType.EXIT_ROOM, dataBytes)
 				})
 				break
 			}

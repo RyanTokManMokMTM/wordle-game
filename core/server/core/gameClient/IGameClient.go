@@ -19,4 +19,6 @@ type IGameClient interface {
 	GetClosedEvent() chan struct{}
 	GetMessage() chan packet.BasicPacket
 	GetGameGuessingInput() chan []byte
+
+	SendToClient(pkType string, data []byte)
 }

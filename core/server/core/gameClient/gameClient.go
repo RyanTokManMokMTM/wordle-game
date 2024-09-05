@@ -96,6 +96,22 @@ func (gc *GameClient) write() {
 	}
 }
 
+func (gc *GameClient) SendToClient(pkType string, data []byte) {
+	pkResp := packet.NewPacket(pkType, data)
+	dataBytes, err := serializex.Marshal(&pkResp)
+	if err != nil {
+		log.Println(err)
+		gc.Closed()
+		return
+	}
+
+	if err := utils.SendMessage(gc.GetConn(), dataBytes); err != nil {
+		log.Println(err)
+		gc.Closed()
+		return
+	}
+}
+
 func (gc *GameClient) eventListener() {
 	for {
 		select {
@@ -135,21 +151,7 @@ func (gc *GameClient) eventListener() {
 					return
 				}
 
-				pkResp := packet.NewPacket(packetType.ESTABLISH, dataBytes)
-				dataBytes, err = serializex.Marshal(&pkResp)
-				if err != nil {
-					log.Println(err)
-					gc.Closed()
-					return
-				}
-
-				if err := utils.SendMessage(gc.GetConn(), dataBytes); err != nil {
-					log.Println(err)
-					gc.Closed()
-					return
-				}
-
-				log.Println(gc.GetName())
+				gc.SendToClient(packetType.ESTABLISH, dataBytes)
 				log.Println("Client set and connected.")
 				break
 			case packetType.PLAYING_GAME:
@@ -158,13 +160,10 @@ func (gc *GameClient) eventListener() {
 					log.Println("serialized create room req error : ", err)
 					return
 				}
-				log.Println("received : ", string(playingGameReq.Input))
 				gc.gameGuessWordInput <- playingGameReq.Input
 				break
 
 			default:
-				//Handle it by server.
-				log.Println("other type?")
 				gc.messageChan <- packetData
 			}
 
