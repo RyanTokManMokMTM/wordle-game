@@ -56,16 +56,27 @@ func GameStart(c client.IClient) {
 		}
 		fmt.Printf("Round %d result: %s\n", currentRound+1, result)
 		fmt.Println("---------------------")
-		c.SetWordHistory(guessText)
 		currentRound += 1
 	}
 
 	fmt.Printf("Game is over, current round guessing word is %s\n", guessingWord)
-	fmt.Printf("Your guess words: %s\n", strings.Join(c.GetWordHistory(), ","))
 	fmt.Println("---------------------")
-	c.Reset()
 }
 
+// guessingWordChecking comprising user input and guessing word
+/*
+	Explain:
+	If guessing word is "WORLD", user input is "HELLO"
+	According to the algorithm which is using a counter.
+	"WORLD" has only 1 letter 'L', "HELLO" have 2 letter 'L'
+	The expected answers will be '___0?'
+
+	If we're using 1 loop to handle this case, the answer is unexpected, which is '__?_?'
+
+	To solve this issue:
+	1. handling the correct letter and correct spot cases ,and updating the counter list
+	2. handling the other case
+*/
 func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result string, isWin bool) {
 	//Due to golang Slice send as a slice addr passing into function
 	//Copy the original wordCounter to a new slice
@@ -76,19 +87,6 @@ func guessingWordChecking(in, guessingWord string, wordCounter []uint) (result s
 	temp := []byte("_____")
 	isWin = false
 
-	/*
-		Explain:
-		If guessing word is "WORLD", user input is "HELLO"
-		According to the algorithm which is using a counter.
-		"WORLD" has only 1 letter 'L', "HELLO" have 2 letter 'L'
-		The expected answers will be '___0?'
-
-		If we're using 1 loop to handle this case, the answer is unexpected, which is '__?_?'
-
-		To solve this issue:
-		1. handling the correct letter and correct spot cases ,and updating the counter list
-		2. handling the other case
-	*/
 	//TODO: handling the correct letter and correct spot and updating the counter list
 	for i := 0; i < size; i++ {
 		index := utils.LetterIndexOf(rune(in[i]))

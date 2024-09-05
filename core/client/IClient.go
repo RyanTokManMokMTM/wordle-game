@@ -1,13 +1,15 @@
 package client
 
 type IClient interface {
-	SetWordHistory(string)
+	// SetGuessingWord get a guessing word randomly from given list
 	SetGuessingWord()
 
+	// GetTotalRound How many total round of the game
 	GetTotalRound() uint
-	GetWordList() []string
-	GetGuessingWord() string
-	GetWordHistory() []string
 
-	Reset()
+	// GetWordList Get the predefined word list
+	GetWordList() []string
+
+	// GetGuessingWord Get current guessing word
+	GetGuessingWord() string
 }
