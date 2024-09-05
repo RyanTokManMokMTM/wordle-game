@@ -171,7 +171,7 @@ func mainPage(c client.IClient) int {
 func setUpClientPage(c client.IClient, setNameCallBack func(name string)) {
 	w := bufio.NewWriter(os.Stdout)
 	headerInfo(w)
-	writeStringToScreen(w, "Welcome to the multiply gamePlayer game!\n")
+	writeStringToScreen(w, "Welcome to the multi-player wordle game!\n")
 	flushScreen(w)
 	var userName string
 	for {
