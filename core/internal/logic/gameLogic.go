@@ -12,44 +12,6 @@ import (
 	"strings"
 )
 
-/*
-		FLOW:
-		IN: HELLO, output: _____ (pick either one form the final list to check)
-		- [HELLO, WORLD, QUITE, FANCY, FRESH, PANIC, CRAZY, BUGGY].
-		- HELLO -> 00000 (1st)
-		- WORLD -> _?_0_ (2st)
-		- QUITE -> ____? (4th)
-		- FANCY -> _____ (5th)
-	   	- FRESH -> __?_? (3rd)
-		- PANIC -> _____ (5th)
-	    - CRAZY -> _____ (5th)
-		- BUGGY -> _____ (5th)
-
-		Pick all word with lower score , in this case will be
-		Final list : [FANCY,PANIC,CRAZY,BUGGY]
-		lower score is the output?
-
-		INPUT: WORLD, output: _____(pick either one form the final list to check)
-		- FANCY: _____ (2rd)
-		- PANIC: _____ (2rd)
-		- CRAZY: _?___ (1st)
-		- BUGGY: _____ (2rd)
-		Final list : [FANCY,PANIC,BUGGY]
-
-		INPUT: FRESH ,output: _____(pick either one form the final list to check)
-		- FANCY: 0____
-		- PANIC: _____
-		- BUGGY: _____
-		Final list : [PANIC,BUGGY]
-
-		INPUT: CRAZY ,output: ?_?__(pick either one form the final list to check)
-		- PANIC: _?__?
-		- BUGGY: ____0
-		Final list : [PANIC]
-
-		normal playing.
-*/
-
 // GameStart start a game for that client
 func GameStart(c client.IClient) {
 	fmt.Println("Start a Wordle Game.")
@@ -78,7 +40,7 @@ func GameStart(c client.IClient) {
 			candidateCounterList[i][index]++
 		}
 	}
-
+	
 	reader := bufio.NewReader(os.Stdin)
 	for currentRound < totalRound {
 		fmt.Printf("Round %d \n", currentRound+1)
@@ -113,8 +75,9 @@ func hostCheatingGameChecking(input string, candidateList []string, candidateLis
 	candidateListSize := len(candidateList)
 	updatedCandidateList = make([]string, 0)
 	updatedCandidateCounterList = make([][]uint, 0)
-	isWin = false
 
+	isWin = false
+	var resultChecker string
 	//If the candidate list has only 1 word, by as normal game
 	if candidateListSize == 0 {
 		return
@@ -187,9 +150,18 @@ func hostCheatingGameChecking(input string, candidateList []string, candidateLis
 			}
 		}
 
-		//Other case will be lowest candidate
-		updatedCandidateList = append(updatedCandidateList, candidateList[i]) //this list will have the same score
+		//MARK: Due to updatedCandidateCounterList must be the same result
+		//MARK: For example: output: _?___ and ?____ cannot coexist , we need to chose one.
+		//ALWAYS pick the first one
+		if len(resultChecker) == 0 {
+			resultChecker = candidateResult[i]
+		} else if strings.Compare(resultChecker, candidateResult[i]) != 0 {
+			//Not the same result
+			continue
+		}
+
 		finalResult = candidateResult[i]
+		updatedCandidateList = append(updatedCandidateList, candidateList[i]) //this list will have the same score
 
 		//Update counter list
 		updatedCandidateCounterList = append(updatedCandidateCounterList, candidateListCounter[i])
