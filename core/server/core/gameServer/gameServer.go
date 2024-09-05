@@ -45,14 +45,14 @@ func NewGameServer(c config.Config) IGameServer {
 		networkType:   c.NetworkType,
 		round:         c.Round,
 		wordList:      c.WordList,
-		roomManager:   manager.NewGameRoomManager(),
-		clientManager: manager.NewGameClientManager(),
+		roomManager:   manager.NewGameRoomManager(),   //Managing all room which is created
+		clientManager: manager.NewGameClientManager(), //Managing all client who is connected
 
-		registerClientChan: make(chan gameClient.IGameClient),
-		messageChan:        make(chan packet.BasicPacket),
-		closedClientChan:   make(chan []byte),
-		closedRoomChan:     make(chan []byte),
-		gameOverRoomChan:   make(chan []byte),
+		registerClientChan: make(chan gameClient.IGameClient), //A new client is connected
+		messageChan:        make(chan packet.BasicPacket),     //Received a message from client
+		closedClientChan:   make(chan []byte),                 //Received clientId that client is disconnected
+		closedRoomChan:     make(chan []byte),                 //Received roomId that room need to be closed
+		gameOverRoomChan:   make(chan []byte),                 //Received roomId that game is finished(all player)
 	}
 }
 
@@ -88,7 +88,7 @@ func (gs *GameServer) Listen() error {
 
 		go newClient.Run()
 		go func() {
-			//To get closed signal
+			//MARK: To get closed signal from game client
 			_ = <-newClient.GetClosedEvent()
 			userId := newClient.GetClientId()
 
@@ -96,7 +96,7 @@ func (gs *GameServer) Listen() error {
 		}()
 
 		go func() {
-			//To received message from client
+			///MARK: To get packet message data game client
 			for {
 				msg, ok := <-newClient.GetMessage()
 				if !ok {
@@ -112,9 +112,11 @@ func (gs *GameServer) Listen() error {
 
 }
 
+// eventListener listening to different channel
 func (gs *GameServer) eventListener() {
 	for {
 		select {
+		//To register a client
 		case client, ok := <-gs.registerClientChan:
 			if !ok {
 				fmt.Println("register-client channel is closed")
@@ -127,6 +129,7 @@ func (gs *GameServer) eventListener() {
 			fmt.Println("Current user : ", len(gs.clientManager.GetGameClientList()))
 			break
 
+		//To remove and disconnect a client
 		case clientId, ok := <-gs.closedClientChan:
 			if !ok {
 				fmt.Println("closed-client channel is closed")
@@ -161,6 +164,7 @@ func (gs *GameServer) eventListener() {
 
 			break
 
+		//To remove a room
 		case id, ok := <-gs.closedRoomChan:
 			if !ok {
 				fmt.Println("closed-room channel is closed")
@@ -169,6 +173,7 @@ func (gs *GameServer) eventListener() {
 			gs.roomManager.RemoveGameRoom(string(id))
 			break
 
+		//To handling packet message from client
 		case message, ok := <-gs.messageChan:
 			if !ok {
 				fmt.Println("closed-room channel is closed")
@@ -232,6 +237,7 @@ func (gs *GameServer) eventListener() {
 	}
 }
 
+// handleMessage handing the packet from client
 func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 	pkType := pk.PacketType
 	pkData := pk.Data
@@ -439,7 +445,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			}
 		}
 		break
-
 	case packetType.START_GAME:
 		var gameStartReq packet.GameStartReq
 		if err := serializex.Unmarshal(pkData, &gameStartReq); err != nil {
@@ -472,7 +477,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			gs.gameOverRoomChan <- []byte(s.GetRoomId())
 		}()
 		break
-
 	}
 }
 

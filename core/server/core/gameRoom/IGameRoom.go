@@ -7,7 +7,10 @@ import (
 type IGameRoom interface {
 	AddPlayer(uid string, p gamePlayer.IGamePlayer)
 	RemovePlayer(uid string) bool
+
 	SetRoomStatus(status string)
+	SetGuessingWord()
+	StartGame(player gamePlayer.IGamePlayer)
 
 	GetRoomId() string
 	GetAllPlayer() []gamePlayer.IGamePlayer
@@ -17,10 +20,6 @@ type IGameRoom interface {
 	GetRoomWordList() []string
 
 	RemoveAllPlayer()
-
-	SetGuessingWord()
-	StartGame(player gamePlayer.IGamePlayer)
-
 	NotifyPlayerWithMessage(p gamePlayer.IGamePlayer, message string)
 	GetTheGameIsOver() chan struct{}
 

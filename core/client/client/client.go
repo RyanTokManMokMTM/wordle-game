@@ -29,12 +29,12 @@ type Client struct {
 	networkType string
 
 	conn            net.Conn
-	close           chan struct{}
-	messageChan     chan []byte
-	sendChan        chan []byte
-	inputChan       chan string
-	isWritable      chan struct{}
-	renderEventChan chan types.RenderEvent
+	close           chan struct{}          //receive a signal for client disconnect
+	messageChan     chan []byte            //receive a message data from server
+	sendChan        chan []byte            //receive pre-sending message, waiting to send to the server
+	inputChan       chan string            //receive input data from keyboard
+	isWritable      chan struct{}          //receive a signal that is able to input from keyboard
+	renderEventChan chan types.RenderEvent //receive a render event to render CMD UI
 
 	previousRenderEvent string
 	currentRenderEvent  string
@@ -54,6 +54,7 @@ func NewClient(c config.Config) IClient {
 	}
 }
 
+// Run connect to server
 func (c *Client) Run() {
 	waitGroup := new(sync.WaitGroup)
 	waitGroup.Add(1)
@@ -73,24 +74,29 @@ func (c *Client) Run() {
 
 }
 
+// SetRenderEventName set current render name and previous render name
 func (c *Client) SetRenderEventName(eventType string) {
 	c.previousRenderEvent = c.currentRenderEvent
 	c.currentRenderEvent = eventType
 }
 
+// SetRenderEvent set current render event
 func (c *Client) SetRenderEvent(eventType string, data []byte) {
 	c.renderEventChan <- types.NewRenderEvent(eventType, data)
 }
 
+// GetRenderEventName Get current render event name
 func (c *Client) GetRenderEventName() string {
 	return c.currentRenderEvent
 }
 
+// GetInput Get the input from write channel
 func (c *Client) GetInput() chan string {
 	c.SetIsWritable()
 	return c.inputChan
 }
 
+// GetRenderEvent Get the render event from render event channel
 func (c *Client) GetRenderEvent() chan types.RenderEvent {
 	return c.renderEventChan
 }
@@ -103,6 +109,7 @@ func (c *Client) SetUserName(name string) {
 	c.userName = name
 }
 
+// SetIsWritable Be able to input from stdin/keyboard
 func (c *Client) SetIsWritable() {
 	c.isWritable <- struct{}{}
 }
@@ -122,21 +129,23 @@ func (c *Client) Close() {
 			log.Println(err)
 		}
 		close(c.close) // Close the channel
-		//close(c.modeChan)
 		close(c.sendChan)
 		close(c.messageChan)
 		close(c.renderEventChan)
 		close(c.inputChan)
+		close(c.isWritable)
 
 	})
 }
 
+// read Reading message from server
 func (c *Client) read() {
 	defer func() {
 		c.Close()
 	}()
 
 	for {
+		//Packet message size
 		var msgLen uint32
 		if err := binary.Read(c.conn, binary.BigEndian, &msgLen); err != nil {
 			if !errors.Is(err, io.EOF) {
@@ -144,7 +153,7 @@ func (c *Client) read() {
 			}
 			return
 		}
-
+		//Decode Packet message by the size
 		data := make([]byte, msgLen)
 		_, err := c.conn.Read(data)
 		if err != nil {
@@ -156,6 +165,7 @@ func (c *Client) read() {
 
 }
 
+// write Writing from keyboard and only be able to write if received an isWrite signal
 func (c *Client) write() {
 	defer func() {
 		c.Close()
@@ -205,6 +215,7 @@ func (c *Client) write() {
 	}
 }
 
+// onListen listing to different channel event
 func (c *Client) onListen(wg *sync.WaitGroup) {
 	defer func() {
 		fmt.Println("onListen is ended")
@@ -246,7 +257,7 @@ func (c *Client) onListen(wg *sync.WaitGroup) {
 
 }
 
-// Define some function for different event
+// handleServerEvent handling packet from server
 func (c *Client) handleServerEvent(pk packet.BasicPacket) {
 	switch pk.PacketType {
 	case packetType.ESTABLISH:
@@ -303,6 +314,7 @@ func (c *Client) handleServerEvent(pk packet.BasicPacket) {
 	}
 }
 
+// SendToServer Sending packet to server.
 func (c *Client) SendToServer(pkgType string, data []byte) {
 	switch pkgType {
 	case packetType.ESTABLISH:

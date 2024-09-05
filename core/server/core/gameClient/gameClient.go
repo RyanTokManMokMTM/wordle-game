@@ -23,11 +23,11 @@ type GameClient struct {
 	conn     net.Conn
 	name     string
 
-	readChan           chan []byte
-	writeChan          chan []byte
-	messageChan        chan packet.BasicPacket
-	gameGuessWordInput chan []byte
-	isClosed           chan struct{}
+	readChan           chan []byte             //received data from client
+	writeChan          chan []byte             //received data for sending to client
+	messageChan        chan packet.BasicPacket //received packet for handling in gameServer
+	gameGuessWordInput chan []byte             //received an input for game playing
+	isClosed           chan struct{}           //received a signal is client disconnected
 }
 
 func NewGameClient(conn net.Conn) IGameClient {
@@ -112,6 +112,7 @@ func (gc *GameClient) SendToClient(pkType string, data []byte) {
 	}
 }
 
+// eventListener listening to read channel
 func (gc *GameClient) eventListener() {
 	for {
 		select {

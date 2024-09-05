@@ -28,8 +28,8 @@ type GameRoom struct {
 	totalRound          uint
 	currentGuessingWord string
 
-	isFinishedGame chan struct{}
-	gameOverPlayer chan gamePlayer.IGamePlayer
+	isFinishedGame chan struct{}               //received a signal that the game is finished(all player)
+	gameOverPlayer chan gamePlayer.IGamePlayer //received player who is finished
 	endedPlayer    []string
 }
 
@@ -73,6 +73,24 @@ func (gr *GameRoom) SetRoomStatus(status string) {
 	gr.status = status
 }
 
+func (gr *GameRoom) SetGuessingWord() {
+	maxLen := len(gr.GetRoomWordList()) - 1
+	if maxLen < 0 {
+		log.Fatal("word list is empty")
+		return
+	}
+
+	if maxLen == 0 {
+		gr.currentGuessingWord = gr.GetRoomWordList()[0]
+		return
+	}
+
+	rand.NewSource(0)
+	index := rand.Intn(maxLen)
+	gr.currentGuessingWord = gr.GetRoomWordList()[index]
+
+}
+
 func (gr *GameRoom) GetAllPlayer() []gamePlayer.IGamePlayer {
 	allPlayer := make([]gamePlayer.IGamePlayer, 0)
 	for _, p := range gr.players {
@@ -110,24 +128,7 @@ func (gr *GameRoom) RemoveAllPlayer() {
 	}
 }
 
-func (gr *GameRoom) SetGuessingWord() {
-	maxLen := len(gr.GetRoomWordList()) - 1
-	if maxLen < 0 {
-		log.Fatal("word list is empty")
-		return
-	}
-
-	if maxLen == 0 {
-		gr.currentGuessingWord = gr.GetRoomWordList()[0]
-		return
-	}
-
-	rand.NewSource(0)
-	index := rand.Intn(maxLen)
-	gr.currentGuessingWord = gr.GetRoomWordList()[index]
-
-}
-
+// StartGame  staring the game process for this player
 func (gr *GameRoom) StartGame(player gamePlayer.IGamePlayer) {
 	log.Println("Game stared with player : ", player.GetClient().GetName())
 	logic.GameLogic(gr.currentGuessingWord, gr.totalRound, player)
@@ -146,6 +147,7 @@ func (gr *GameRoom) updateEndedPlayer(id string) {
 	gr.endedPlayer = append(gr.endedPlayer, id)
 }
 
+// isOver is all player done the game
 func (gr *GameRoom) isOver() bool {
 	size := len(gr.players)
 	doneSize := len(gr.endedPlayer)
@@ -153,6 +155,7 @@ func (gr *GameRoom) isOver() bool {
 	return size == doneSize
 }
 
+// GetTheGameIsOver getting isFinishedGame signal from channel
 func (gr *GameRoom) GetTheGameIsOver() chan struct{} {
 	return gr.isFinishedGame
 }
@@ -162,6 +165,7 @@ func (gr *GameRoom) Close() {
 	close(gr.gameOverPlayer)
 }
 
+// notifyPlayer with a defined message
 func (gr *GameRoom) notifyPlayer(withoutClient gamePlayer.IGamePlayer) {
 	players := gr.players
 	for _, p := range players {
