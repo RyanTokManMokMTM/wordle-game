@@ -16,10 +16,14 @@
 ---
 ### How to start the game
 1. Clone the project
-> git clone https://github.com/RyanTokManMokMTM/wordle-game.git
+```
+git clone https://github.com/RyanTokManMokMTM/wordle-game.git
+```
 
 2. Download the package
-> go mod download
+```
+go mod download
+```
 
 3. (Optinal) Update the config setting
 ```
@@ -28,10 +32,14 @@
 ```
 
 4. Go into `core/server` folder and run the command to start up the server
-> go run server.go
+```
+go run server.go
+```
 
 5.Go into `core/client` folder and run the command to start up the client
-> go run client.go
+```
+go run client.go
+```
 
 6. Enjoy!
 
