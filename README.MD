@@ -30,11 +30,18 @@
 ---
 
 ### File structure
-├── client     # client interface & implementation       
-├── common     # Tools and utilities                 
-├── etc        # Config file  
-├── game       # Game Start entry point         
-├── internal   # Core Logic             
+├── client    # Client side logic and file    
+├──── client  # Interface and implementation  
+├──── etc  # Config file  
+├──── game  # Client entire point    
+├──── internal  
+├──────── config # config file definition  
+├── common    # Tools and utilities                 
+├── server    # Server side logic and file   
+├──── core  # interface and implementation  
+├──── etc  # Config file  
+├──── game # Game entire point  
+├──── internal  # game logic   
 └── README.md  # Doc
 
 ### Core implementation
