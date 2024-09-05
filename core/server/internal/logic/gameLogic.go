@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// GameLogic start a game for that gameClient
+// GameLogic start a game for that client
 func GameLogic(guessingWord string, totalRound uint, conn net.Conn) {
 	wordCounter := make([]uint, 52)
 	var currentRound uint = 0

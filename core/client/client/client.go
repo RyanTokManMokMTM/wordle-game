@@ -5,10 +5,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/RyanTokManMokMTM/wordle-game/core/client/internal/config"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
-	"github.com/RyanTokManMokMTM/wordle-game/core/gameClient/internal/config"
 	"io"
 	"log"
 	"net"
@@ -40,6 +40,7 @@ func NewClient(c config.Config) IClient {
 	}
 }
 
+// Run start a client and connect to server
 func (c *Client) Run() {
 	source := fmt.Sprintf("%s:%d", c.host, c.port)
 	var err error
@@ -61,6 +62,8 @@ func (c *Client) Run() {
 	c.onListen()
 
 }
+
+// onListen listening to different event.
 func (c *Client) onListen() {
 	for {
 		select {
@@ -85,6 +88,7 @@ func (c *Client) onListen() {
 
 }
 
+// Close disconnect the connection
 func (c *Client) Close() {
 	c.Once.Do(func() {
 		//TODO: to run it once only
@@ -95,12 +99,14 @@ func (c *Client) Close() {
 	})
 }
 
+// read Reading message form server
 func (c *Client) read() {
 	defer func() {
 		c.Close()
 	}()
 
 	for {
+		//Getting the packet message length
 		var msgLen uint32
 		if err := binary.Read(c.conn, binary.BigEndian, &msgLen); err != nil {
 			if !errors.Is(err, io.EOF) {
@@ -109,6 +115,7 @@ func (c *Client) read() {
 			return
 		}
 
+		//To decode the packet message for msgLen
 		data := make([]byte, msgLen)
 		_, err := c.conn.Read(data)
 		if err != nil {
@@ -120,6 +127,7 @@ func (c *Client) read() {
 
 }
 
+// write Writing any message from input and send to server
 func (c *Client) write() {
 	//TODO: allowing input from user when receiving an write signed?
 	defer func() {
@@ -147,13 +155,13 @@ func (c *Client) write() {
 	}
 }
 
-// Define some function for different event
+// handleServerEvent handing different packet event
 func (c *Client) handleServerEvent(serverMsg packet.Packet) {
 	switch serverMsg.PacketType {
 	case packetType.IN_GAME:
 		fmt.Print(string(serverMsg.GameMessage))
 		if serverMsg.IsWritable {
-			c.writable <- struct{}{} // be able to input...
+			c.writable <- struct{}{} // To enable the input...
 		}
 	default:
 		log.Println("Packet not supported")

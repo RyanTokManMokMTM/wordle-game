@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/RyanTokManMokMTM/wordle-game/core/client/game"
+	"github.com/RyanTokManMokMTM/wordle-game/core/client/internal/config"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/conf"
-	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/internal/config"
-	"github.com/RyanTokManMokMTM/wordle-game/core/gameServer/server/gameServer"
 	"log"
 )
 
@@ -17,10 +17,5 @@ func main() {
 	if err := conf.Load(*configFile, &c); err != nil {
 		log.Fatal(err)
 	}
-
-	server := gameServer.NewGameServer(&c)
-	if err := server.Listen(); err != nil {
-		log.Fatal(err)
-	}
-
+	game.Start(c)
 }
