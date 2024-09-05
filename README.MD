@@ -34,12 +34,15 @@ core/etc
 ---
 
 ### File structure
+```
+.
 ├── client     # client interface & implementation       
 ├── common     # Tools and utilities                 
 ├── etc        # Config file  
 ├── game       # Game Start entry point         
 ├── internal   # Core Logic             
 └── README.md  # Doc
+```
 
 ### Core implementation
 #### guessingWordChecking  logic
