@@ -112,11 +112,26 @@ func (rd *Render) onListen() {
 						}
 
 						rd.c.SendToServer(packetType.START_GAME, dataBytes)
+						break
 					default:
 						fmt.Println(color.Red + "Not supported" + color.Reset)
 						os.Exit(0)
 						return
 					}
+				}, func(roomId, message string) {
+					messageReq := packet.GameRoomChatMessage{
+						UserId:  rd.c.GetUserId(),
+						RoomId:  roomId,
+						Message: message,
+					}
+
+					dataBytes, err := serializex.Marshal(&messageReq)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+
+					rd.c.SendToServer(packetType.ROOM_CHAT_MESSAGE, dataBytes)
 				})
 				break
 			case renderEvent.ROOM_LIST_PAGE:
@@ -161,6 +176,20 @@ func (rd *Render) onListen() {
 						os.Exit(0)
 						return
 					}
+				}, func(roomId, message string) {
+					messageReq := packet.GameRoomChatMessage{
+						UserId:  rd.c.GetUserId(),
+						RoomId:  roomId,
+						Message: message,
+					}
+
+					dataBytes, err := serializex.Marshal(&messageReq)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+
+					rd.c.SendToServer(packetType.ROOM_CHAT_MESSAGE, dataBytes)
 				})
 				break
 			case renderEvent.START_GAME:

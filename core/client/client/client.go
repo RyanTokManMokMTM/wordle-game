@@ -327,6 +327,8 @@ func (c *Client) SendToServer(pkgType string, data []byte) {
 		fallthrough
 	case packetType.START_GAME:
 		fallthrough
+	case packetType.ROOM_CHAT_MESSAGE:
+		fallthrough
 	case packetType.EXIT_ROOM:
 		pk := packet.NewPacket(pkgType, data)
 

@@ -98,6 +98,7 @@ type PlayingGameResp struct {
 }
 
 type NotifyPlayer struct {
+	Type    string `json:"type"`
 	Message []byte `json:"message"`
 }
 
@@ -105,4 +106,10 @@ type EndingGameResp struct {
 	OutputColorASNI string `json:"output_color_asni"`
 	RoomId          string `json:"room_id"`
 	Message         []byte `json:"message"`
+}
+
+type GameRoomChatMessage struct {
+	UserId  string `json:"user_id"`
+	RoomId  string `json:"roomId"`
+	Message string `json:"message"`
 }

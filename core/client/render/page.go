@@ -6,6 +6,7 @@ import (
 	"github.com/RyanTokManMokMTM/wordle-game/core/client/client"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/color"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/notificationType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/renderEvent"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/status"
@@ -76,67 +77,47 @@ func renderRoomTable(w *bufio.Writer, rooms []packet.GameRoomInfoPacket) {
 	writeStringToScreen(w, "=========================================================\n")
 }
 
-func roomInfoPage(w *bufio.Writer, c client.IClient, isHost bool, info packet.GameRoomInfoPacket, callback func(mode uint, roomId string)) {
+func roomInfoPage(w *bufio.Writer, c client.IClient, isHost bool, info packet.GameRoomInfoPacket, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
 	headerInfo(w)
 	roomInfo(w, info)
 
 	var selectedMode uint
 	if isHost {
-		for {
-			writeStringToScreen(w, "Welcome, you have created a new room.\n")
-			writeStringToScreen(w, "You can start the game or enter /q to leave\n")
-			writeStringToScreen(w, "1: Start the game\n")
-			flushScreen(w)
-			input, ok := <-c.GetInput()
-			if !ok {
-				log.Fatal("input channel closed")
-			}
-			input = strings.Trim(input, "\r\n")
-			b := isExit(input, "/q")
-			if b {
-				selectedMode = 0
-				callback(selectedMode, info.RoomId)
-				return
-			}
-
-			inputNum, err := strconv.Atoi(input)
-			if err != nil {
-				writeStringToScreen(w, color.Red+"Input should be a number.\n"+color.Reset)
-				continue
-			}
-			if err == nil {
-				selectedMode = uint(inputNum)
-				break
-			}
-		}
-		callback(selectedMode, info.RoomId)
-
+		writeStringToScreen(w, "Welcome, you have created a new room.\n")
+		writeStringToScreen(w, "You can start the game or enter /q to leave, and chatting with any message.\n")
+		writeStringToScreen(w, "/s: Start the game\n")
+		flushScreen(w)
 	} else {
-		for {
-			writeStringToScreen(w, "Welcome, You joined the room. Please waiting room's host to start the game.\n")
-			writeStringToScreen(w, "1: Exit the room\n")
-			flushScreen(w)
-			input, ok := <-c.GetInput()
-			if !ok {
-				log.Fatal("input channel closed")
-			}
-
-			if strings.Compare(input, "-1") == 0 {
-				return
-			}
-			input = strings.Trim(input, "\r\n")
-			inputNum, err := strconv.Atoi(input)
-			if err != nil {
-				writeStringToScreen(w, color.Red+"Input should be a number.\n"+color.Reset)
-				continue
-			}
-			if err == nil {
-				selectedMode = uint(inputNum)
-				break
-			}
-		}
-		callback(selectedMode, info.RoomId)
+		writeStringToScreen(w, "Welcome, You joined the room. Please waiting room's host to start the game.\n")
+		writeStringToScreen(w, "/q: Exit the room\n")
+		flushScreen(w)
 	}
+
+	for {
+		input, ok := <-c.GetInput()
+		if !ok {
+			log.Fatal("input channel closed")
+		}
+
+		input = strings.Trim(input, "\r\n")
+		if strings.Compare(input, "-1") == 0 {
+			return //just return
+		}
+
+		if b := isExit(input, "/q"); b {
+			selectedMode = 0
+			return //exit
+		}
+
+		if isHost && strings.Compare("/s", input) == 0 {
+			selectedMode = 1 //start
+			break
+		}
+		writeStringToScreen(w, color.Yellow+fmt.Sprintf("[You] : %s\n", input)+color.Reset)
+		flushScreen(w)
+		go sendingMessage(info.RoomId, input) //Sending message.
+	}
+	callback(selectedMode, info.RoomId) // sending game signal
 }
 
 func mainPage(c client.IClient) int {
@@ -251,7 +232,7 @@ func createRoomPage(c client.IClient, callback func(roomName string, wordList []
 	callback(roomName, wordList)
 }
 
-func createRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string)) {
+func createRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
 	ClearScreen()
 	var result packet.CreateRoomResp
 	if err := serializex.Unmarshal(data, &result); err != nil {
@@ -260,7 +241,7 @@ func createRoomResultPage(c client.IClient, data []byte, callback func(mode uint
 	}
 
 	w := bufio.NewWriter(os.Stdout)
-	roomInfoPage(w, c, true, result.GameRoomInfoPacket, callback)
+	roomInfoPage(w, c, true, result.GameRoomInfoPacket, callback, sendingMessage)
 	flushScreen(w)
 }
 
@@ -313,7 +294,7 @@ func joinRoomPage(c client.IClient, data []byte, callback func(roomId string, is
 
 }
 
-func joinRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string)) {
+func joinRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
 	ClearScreen()
 	var result packet.JoinRoomResp
 	if err := serializex.Unmarshal(data, &result); err != nil {
@@ -321,7 +302,7 @@ func joinRoomResultPage(c client.IClient, data []byte, callback func(mode uint, 
 		return
 	}
 	w := bufio.NewWriter(os.Stdout)
-	roomInfoPage(w, c, false, result.GameRoomInfoPacket, callback)
+	roomInfoPage(w, c, false, result.GameRoomInfoPacket, callback, sendingMessage)
 	flushScreen(w)
 }
 
@@ -371,5 +352,15 @@ func notificationOutput(data []byte) {
 		log.Fatal(err)
 		return
 	}
-	fmt.Print(color.Red + string(result.Message) + color.Reset)
+
+	switch result.Type {
+	case notificationType.ROOM_CHAT:
+		fmt.Print(color.Yellow + string(result.Message) + color.Reset)
+		break
+	case notificationType.SYS:
+		fmt.Print(color.Red + string(result.Message) + color.Reset)
+		break
+	default:
+		fmt.Print(string(result.Message))
+	}
 }

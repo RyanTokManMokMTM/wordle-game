@@ -26,4 +26,7 @@ const (
 
 	//Notify player
 	GAME_NOTIFICATION = "GAME_NOTIFICATION"
+
+	//Room chat message
+	ROOM_CHAT_MESSAGE = "ROOM_CHAT_MESSAGE"
 )

@@ -5,6 +5,7 @@ import (
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/color"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/code"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/notificationType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/status"
@@ -150,7 +151,7 @@ func (gs *GameServer) eventListener() {
 				if ok := s.RemovePlayer(cid); ok {
 					for _, p := range s.GetAllPlayer() {
 						if strings.Compare(cid, p.GetClient().GetClientId()) != 0 {
-							s.NotifyPlayerWithMessage(p, fmt.Sprintf("[SYSTEM] Player %s is disconcted.\n", p.GetClient().GetName()))
+							s.NotifyPlayerWithMessage(p, fmt.Sprintf("[SYSTEM] Player %s is disconnected.\n", p.GetClient().GetName()))
 						}
 					}
 				}
@@ -476,6 +477,53 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 
 			gs.gameOverRoomChan <- []byte(s.GetRoomId())
 		}()
+		break
+	case packetType.ROOM_CHAT_MESSAGE:
+		var gameMsgReq packet.GameRoomChatMessage
+		if err := serializex.Unmarshal(pkData, &gameMsgReq); err != nil {
+			log.Println("serialized join room req error : ", err)
+			return
+		}
+
+		sender, ok := gs.clientManager.GetGameClient(gameMsgReq.UserId)
+		if !ok {
+			log.Println("Client not connected")
+			return
+		}
+
+		s, ok := gs.roomManager.GetGameRoom(gameMsgReq.RoomId)
+		if !ok {
+			log.Println("Room not found")
+			return
+		}
+
+		isHost := strings.Compare(sender.GetClientId(), s.GetRoomHost().GetClient().GetClientId()) == 0
+		var msg string
+		if isHost {
+			msg = fmt.Sprintf("[%s (Room Host)] : %s\n", sender.GetName(), gameMsgReq.Message)
+		} else {
+			msg = fmt.Sprintf("[%s] : %s\n", sender.GetName(), gameMsgReq.Message)
+		}
+
+		players := s.GetAllPlayer()
+		resp := packet.NotifyPlayer{
+			Type:    notificationType.ROOM_CHAT,
+			Message: []byte(msg),
+		}
+
+		dataBytes, err := serializex.Marshal(&resp)
+		if err != nil {
+			log.Print("serialize NotifyPlayer error : ", err)
+			return
+		}
+
+		for _, p := range players {
+			if strings.Compare(sender.GetClientId(), p.GetClient().GetClientId()) == 0 {
+				continue
+			}
+			p.GetClient().SendToClient(packetType.GAME_NOTIFICATION, dataBytes)
+		}
+
 		break
 	}
 }

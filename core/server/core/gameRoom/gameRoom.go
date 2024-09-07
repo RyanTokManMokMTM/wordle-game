@@ -3,6 +3,7 @@ package gameRoom
 import (
 	"fmt"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/notificationType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/status"
@@ -181,6 +182,7 @@ func (gr *GameRoom) notifyPlayer(withoutClient gamePlayer.IGamePlayer) {
 
 func (gr *GameRoom) NotifyPlayerWithMessage(p gamePlayer.IGamePlayer, message string) {
 	req := packet.NotifyPlayer{
+		Type:    notificationType.SYS,
 		Message: []byte(message),
 	}
 
