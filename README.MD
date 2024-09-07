@@ -97,11 +97,6 @@ for i := 0; i < size; i++ {
 }
 ```
 
-### Idea(Not yet implemented)
-- After created room/Joined the room, player be able to chat
-- Add a ranking table showing total score gained from region
-- Host can set different think for the game
-  - How many round
-  - How to calculate the score
-  - Kicking player
-  - etc
+### Updated
+* Room chatting
+![room_chat](./demo/update/2024-9-07_roomchat.png)
