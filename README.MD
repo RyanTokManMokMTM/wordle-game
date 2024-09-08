@@ -100,3 +100,5 @@ for i := 0; i < size; i++ {
 ### Updated
 * Room chatting
 ![room_chat](./demo/update/2024-9-07_roomchat.png)
+* Be able to enter/input dictionary words only
+* Fixed join room issue, which be able to join when the game is started.
