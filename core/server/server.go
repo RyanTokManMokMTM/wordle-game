@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/conf"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/utils"
 	"github.com/RyanTokManMokMTM/wordle-game/core/server/game"
 	"github.com/RyanTokManMokMTM/wordle-game/core/server/internal/config"
 	"log"
@@ -18,5 +19,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	game.Start(c)
+	data, err := utils.LoadFile("../resources/words.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	game.Start(c, utils.DataBytesToList(data, "\n"))
 }

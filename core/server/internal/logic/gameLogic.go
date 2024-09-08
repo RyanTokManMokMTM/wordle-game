@@ -36,7 +36,7 @@ Enjoy you game! Good luck.
 var divider = `=============================================================================================================================`
 
 // GameLogic start a game for that client
-func GameLogic(guessingWord string, totalRound uint, player gamePlayer.IGamePlayer) {
+func GameLogic(guessingWord string, totalRound uint, player gamePlayer.IGamePlayer, dictionaryMap map[string]byte) {
 	wordCounter := make([]uint, 52)
 	var currentRound uint = 0
 	var gameScore uint = 0
@@ -81,6 +81,19 @@ func GameLogic(guessingWord string, totalRound uint, player gamePlayer.IGamePlay
 
 		if !regex.Regex(guessText, regex.FiveLetterWordMatcher) {
 			err := writeMessage(conn, false, fmt.Sprintf("Input must be a 5-letter word\n%s\n", divider), color.Red, packetType.PLAYING_GAME)
+			if err != nil {
+				log.Println(err)
+				_ = conn.Close()
+				return
+			}
+			continue
+		}
+
+		//Checking dictionary
+		checkingDictWord := strings.ToLower(guessText)
+		_, ok := dictionaryMap[checkingDictWord]
+		if !ok {
+			err := writeMessage(conn, false, fmt.Sprintf("Must be an english word in dictionary.\n%s\n", divider), color.Red, packetType.PLAYING_GAME)
 			if err != nil {
 				log.Println(err)
 				_ = conn.Close()

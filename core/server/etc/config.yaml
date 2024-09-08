@@ -2,4 +2,7 @@ host: "0.0.0.0"
 port: 8000
 networkType: "tcp"
 round: 5
+BigHugeAPIKey : 5f1e923071043bd456c7722166f2b5fb
+
+
 wordList: [HELLO, WORLD, QUITE, FANCY, FRESH, PANIC, CRAZY, BUGGY,SCARE]

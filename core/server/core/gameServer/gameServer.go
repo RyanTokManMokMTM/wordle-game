@@ -27,6 +27,7 @@ type GameServer struct {
 	networkType   string
 	listener      net.Listener
 	round         uint
+	dictionaryMap map[string]byte
 	wordList      []string
 	roomManager   manager.IGameRoomManager
 	clientManager manager.IGameClientManager
@@ -39,13 +40,14 @@ type GameServer struct {
 	registerClientChan chan gameClient.IGameClient
 }
 
-func NewGameServer(c config.Config) IGameServer {
+func NewGameServer(c config.Config, dictMap map[string]byte) IGameServer {
 	return &GameServer{
 		host:          c.Host,
 		port:          c.Port,
 		networkType:   c.NetworkType,
 		round:         c.Round,
 		wordList:      c.WordList,
+		dictionaryMap: dictMap,
 		roomManager:   manager.NewGameRoomManager(),   //Managing all room which is created
 		clientManager: manager.NewGameClientManager(), //Managing all client who is connected
 
@@ -272,7 +274,8 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			player,
 			createRoomReq.RoomName,
 			roomWordList,
-			gs.round)
+			gs.round,
+			gs.dictionaryMap)
 
 		newRoom.AddPlayer(u.GetClientId(), player)
 		gs.roomManager.SetGameRoom(newRoom.GetRoomId(), newRoom)

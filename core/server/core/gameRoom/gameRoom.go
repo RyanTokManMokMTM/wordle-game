@@ -19,12 +19,13 @@ import (
 
 type GameRoom struct {
 	sync.Mutex
-	roomId   string
-	host     gamePlayer.IGamePlayer
-	name     string
-	wordList []string
-	status   string
-	players  map[string]gamePlayer.IGamePlayer
+	roomId        string
+	host          gamePlayer.IGamePlayer
+	name          string
+	wordList      []string
+	status        string
+	players       map[string]gamePlayer.IGamePlayer
+	dictionaryMap map[string]byte
 
 	totalRound          uint
 	currentGuessingWord string
@@ -34,12 +35,13 @@ type GameRoom struct {
 	endedPlayer    []string
 }
 
-func NewGameRoom(host gamePlayer.IGamePlayer, name string, wordList []string, totalRound uint) IGameRoom {
+func NewGameRoom(host gamePlayer.IGamePlayer, name string, wordList []string, totalRound uint, dictionaryMap map[string]byte) IGameRoom {
 	return &GameRoom{
-		roomId: uuid.NewString(),
-		status: status.ROOM_STAUS_WAITING,
-		host:   host,
-		name:   name,
+		roomId:        uuid.NewString(),
+		status:        status.ROOM_STAUS_WAITING,
+		host:          host,
+		name:          name,
+		dictionaryMap: dictionaryMap,
 
 		wordList:   wordList,
 		players:    make(map[string]gamePlayer.IGamePlayer),
@@ -132,7 +134,7 @@ func (gr *GameRoom) RemoveAllPlayer() {
 // StartGame  staring the game process for this player
 func (gr *GameRoom) StartGame(player gamePlayer.IGamePlayer) {
 	log.Println("Game stared with player : ", player.GetClient().GetName())
-	logic.GameLogic(gr.currentGuessingWord, gr.totalRound, player)
+	logic.GameLogic(gr.currentGuessingWord, gr.totalRound, player, gr.dictionaryMap)
 
 	gr.updateEndedPlayer(player.GetClient().GetClientId())
 	if !gr.isOver() {
