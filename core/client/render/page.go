@@ -6,6 +6,7 @@ import (
 	"github.com/RyanTokManMokMTM/wordle-game/core/client/client"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/color"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/code"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/notificationType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/renderEvent"
@@ -106,7 +107,7 @@ func roomInfoPage(w *bufio.Writer, c client.IClient, isHost bool, info packet.Ga
 
 		if b := isExit(input, "/q"); b {
 			selectedMode = 0
-			return //exit
+			break //exit
 		}
 
 		if isHost && strings.Compare("/s", input) == 0 {
@@ -302,6 +303,17 @@ func joinRoomResultPage(c client.IClient, data []byte, callback func(mode uint, 
 		return
 	}
 	w := bufio.NewWriter(os.Stdout)
+
+	if result.Code == code.REQUEST_FAILED {
+		writeStringToScreen(w, fmt.Sprintln(color.Red+result.Message+color.Reset))
+		writeStringToScreen(w, "enter any key and leave\n")
+		flushScreen(w)
+		_ = <-c.GetInput()
+		c.SetRenderEvent(renderEvent.HOME_PAGE, nil)
+		c.SetRenderEventName(renderEvent.HOME_PAGE)
+		return
+	}
+
 	roomInfoPage(w, c, false, result.GameRoomInfoPacket, callback, sendingMessage)
 	flushScreen(w)
 }

@@ -158,7 +158,7 @@ func (rd *Render) onListen() {
 			case renderEvent.JOIN_ROOM:
 				go joinRoomResultPage(rd.c, event.Data, func(mode uint, roomId string) {
 					switch mode {
-					case 1:
+					case 0:
 						exitRoomReq := packet.ExitRoomReq{
 							UserId: rd.c.GetUserId(),
 							RoomId: roomId,
