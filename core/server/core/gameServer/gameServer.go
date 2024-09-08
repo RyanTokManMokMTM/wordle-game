@@ -365,6 +365,22 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			return
 		}
 
+		if strings.Compare(room.GetRoomStatus(), status.ROOM_STAUS_PLAYING) == 0 {
+			//Room is now playing, can not join.
+			resp := packet.JoinRoomResp{
+				Code:    code.REQUEST_FAILED,
+				Message: "Game room started, you cannot join.",
+			}
+
+			dataBytes, err := serializex.Marshal(&resp)
+			if err != nil {
+				log.Println("Serialized error : ", err)
+				return
+			}
+			u.SendToClient(packetType.JOIN_ROOM, dataBytes)
+			return
+		}
+
 		newPlayer := gamePlayer.NewPlayer(u)
 		room.AddPlayer(u.GetClientId(), newPlayer)
 		//Sending a packet to client to updateUI?

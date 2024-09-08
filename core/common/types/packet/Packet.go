@@ -42,7 +42,8 @@ type JoinRoomReq struct {
 }
 
 type JoinRoomResp struct {
-	Code uint `json:"code"`
+	Code    uint   `json:"code"`
+	Message string `json:"message"`
 	GameRoomInfoPacket
 }
 
