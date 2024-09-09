@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/serializex"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/code"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packetType"
 	"github.com/RyanTokManMokMTM/wordle-game/core/common/utils"
@@ -96,8 +97,8 @@ func (gc *GameClient) write() {
 	}
 }
 
-func (gc *GameClient) SendToClient(pkType string, data []byte) {
-	pkResp := packet.NewPacket(pkType, data)
+func (gc *GameClient) SendToClient(code uint, message, pkType string, data []byte) {
+	pkResp := packet.NewResponse(pkType, code, message, data)
 	dataBytes, err := serializex.Marshal(&pkResp)
 	if err != nil {
 		log.Println(err)
@@ -136,6 +137,7 @@ func (gc *GameClient) eventListener() {
 				var establishReq packet.EstablishReq
 				if err := serializex.Unmarshal(pkData, &establishReq); err != nil {
 					log.Println("serialized create room req error : ", err)
+					gc.Closed()
 					return
 				}
 				gc.SetUserName(establishReq.PlayerName)
@@ -152,7 +154,7 @@ func (gc *GameClient) eventListener() {
 					return
 				}
 
-				gc.SendToClient(packetType.ESTABLISH, dataBytes)
+				gc.SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.ESTABLISH, dataBytes)
 				log.Println("Client set and connected.")
 				break
 			case packetType.PLAYING_GAME:

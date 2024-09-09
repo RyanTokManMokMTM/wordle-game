@@ -81,7 +81,7 @@ func (c *Client) SetRenderEventName(eventType string) {
 }
 
 // SetRenderEvent set current render event
-func (c *Client) SetRenderEvent(eventType string, data []byte) {
+func (c *Client) SetRenderEvent(eventType string, data *packet.BasicResponseType) {
 	c.renderEventChan <- types.NewRenderEvent(eventType, data)
 }
 
@@ -233,13 +233,13 @@ func (c *Client) onListen(wg *sync.WaitGroup) {
 				return
 			}
 
-			var msg *packet.BasicPacket
+			var msg *packet.BasicResponseType
 			if err := serializex.Unmarshal(data, &msg); err != nil {
 				log.Print("json err :", err)
 				return
 			}
 
-			c.handleServerEvent(*msg)
+			c.handleServerEvent(msg)
 			break
 
 		case dataBytes, ok := <-c.sendChan:
@@ -258,7 +258,7 @@ func (c *Client) onListen(wg *sync.WaitGroup) {
 }
 
 // handleServerEvent handling packet from server
-func (c *Client) handleServerEvent(pk packet.BasicPacket) {
+func (c *Client) handleServerEvent(pk *packet.BasicResponseType) {
 	switch pk.PacketType {
 	case packetType.ESTABLISH:
 		var resp packet.EstablishResp
@@ -275,38 +275,38 @@ func (c *Client) handleServerEvent(pk packet.BasicPacket) {
 		break
 	case packetType.ROOM_LIST_INFO:
 		c.SetRenderEventName(renderEvent.ROOM_LIST_PAGE)
-		c.SetRenderEvent(renderEvent.ROOM_LIST_PAGE, pk.Data)
+		c.SetRenderEvent(renderEvent.ROOM_LIST_PAGE, pk)
 		break
 	case packetType.CREATE_ROOM:
 		//render create room result page.
 		c.SetRenderEventName(renderEvent.CREATE_ROOM)
-		c.SetRenderEvent(renderEvent.CREATE_ROOM, pk.Data)
+		c.SetRenderEvent(renderEvent.CREATE_ROOM, pk)
 		break
 	case packetType.JOIN_ROOM:
 		//render join room result page.
 		c.SetRenderEventName(renderEvent.JOIN_ROOM)
-		c.SetRenderEvent(renderEvent.JOIN_ROOM, pk.Data)
+		c.SetRenderEvent(renderEvent.JOIN_ROOM, pk)
 		break
 	case packetType.EXIT_ROOM:
 		c.SetRenderEventName(renderEvent.HOME_PAGE)
 		c.SetRenderEvent(renderEvent.HOME_PAGE, nil)
 		break
 	case packetType.START_GAME:
-		c.SetRenderEvent(renderEvent.START_GAME, pk.Data)
+		c.SetRenderEvent(renderEvent.START_GAME, pk)
 		break
 	case packetType.PLAYING_GAME:
 		if strings.Compare(c.previousRenderEvent, renderEvent.JOIN_ROOM) == 0 {
 			c.inputChan <- "-1" //To disable join room event stdin
 		}
 		c.SetRenderEventName(renderEvent.GAME_PAGE)
-		c.SetRenderEvent(renderEvent.GAME_PAGE, pk.Data)
+		c.SetRenderEvent(renderEvent.GAME_PAGE, pk)
 		break
 	case packetType.GAME_NOTIFICATION:
-		c.SetRenderEvent(renderEvent.GAME_NOTIFICATION, pk.Data)
+		c.SetRenderEvent(renderEvent.GAME_NOTIFICATION, pk)
 		break
 	case packetType.END_GAME:
 		c.SetRenderEventName(renderEvent.ENED_GAME)
-		c.SetRenderEvent(renderEvent.ENED_GAME, pk.Data)
+		c.SetRenderEvent(renderEvent.ENED_GAME, pk)
 		break
 	default:
 		log.Println("Packet not supported")

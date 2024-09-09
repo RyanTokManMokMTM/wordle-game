@@ -20,5 +20,5 @@ type IGameClient interface {
 	GetMessage() chan packet.BasicPacket
 	GetGameGuessingInput() chan []byte
 
-	SendToClient(pkType string, data []byte)
+	SendToClient(code uint, message, pkType string, data []byte)
 }

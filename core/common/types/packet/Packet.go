@@ -8,10 +8,26 @@ type BasicPacket struct {
 	Data       []byte `json:"data"` //Decode by to the packet type
 }
 
+type BasicResponseType struct {
+	Code       uint   `json:"code"`
+	PacketType string `json:"packet_type"`
+	Message    string `json:"message"`
+	Data       []byte `json:"data"` //Decode by to the packet type
+}
+
 func NewPacket(pkType string, data []byte) *BasicPacket {
 	return &BasicPacket{
 		PacketId:   uuid.NewString(),
 		PacketType: pkType,
+		Data:       data,
+	}
+}
+
+func NewResponse(pkType string, code uint, msg string, data []byte) *BasicResponseType {
+	return &BasicResponseType{
+		Code:       code,
+		PacketType: pkType,
+		Message:    msg,
 		Data:       data,
 	}
 }
@@ -32,7 +48,6 @@ type CreateRoomReq struct {
 }
 
 type CreateRoomResp struct {
-	Code uint `json:"code"`
 	GameRoomInfoPacket
 }
 
@@ -42,8 +57,6 @@ type JoinRoomReq struct {
 }
 
 type JoinRoomResp struct {
-	Code    uint   `json:"code"`
-	Message string `json:"message"`
 	GameRoomInfoPacket
 }
 
@@ -53,7 +66,6 @@ type ExitRoomReq struct {
 }
 
 type ExitRoomResp struct {
-	Code uint `json:"code"`
 }
 
 type GetRoomListInfoReq struct {
@@ -61,17 +73,14 @@ type GetRoomListInfoReq struct {
 }
 
 type GetRoomListInfoResp struct {
-	Code  uint                 `json:"code"`
 	Rooms []GameRoomInfoPacket `json:"rooms"`
 }
 
 type GetRoomInfoReq struct {
-	UserId string `json:"user_id"`
 	RoomId string `json:"room_id"`
 }
 
 type GetRoomInfoResp struct {
-	Code uint `json:"code"`
 	GameRoomInfoPacket
 }
 

@@ -233,89 +233,101 @@ func createRoomPage(c client.IClient, callback func(roomName string, wordList []
 	callback(roomName, wordList)
 }
 
-func createRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
+func createRoomResultPage(c client.IClient, resp *packet.BasicResponseType, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
 	ClearScreen()
-	var result packet.CreateRoomResp
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
+	switch resp.Code {
+	case code.SUCCESS:
+		var result packet.CreateRoomResp
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		w := bufio.NewWriter(os.Stdout)
+		roomInfoPage(w, c, true, result.GameRoomInfoPacket, callback, sendingMessage)
+		flushScreen(w)
+		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
 		return
 	}
-
-	w := bufio.NewWriter(os.Stdout)
-	roomInfoPage(w, c, true, result.GameRoomInfoPacket, callback, sendingMessage)
-	flushScreen(w)
 }
 
-func joinRoomPage(c client.IClient, data []byte, callback func(roomId string, isLeave bool)) {
+func joinRoomPage(c client.IClient, resp *packet.BasicResponseType, callback func(roomId string, isLeave bool)) {
 	ClearScreen()
-	var result packet.GetRoomListInfoResp
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
-		return
-	}
-	w := bufio.NewWriter(os.Stdout)
-	renderRoomTable(w, result.Rooms)
-	flushScreen(w)
-
-	var roomId string
-	isLeave := false
-	for {
-		writeStringToScreen(w, "Enter a room id you want to join or /q to leave\n")
-		writeStringToScreen(w, "In: ")
+	switch resp.Code {
+	case code.SUCCESS:
+		var result packet.GetRoomListInfoResp
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+		w := bufio.NewWriter(os.Stdout)
+		renderRoomTable(w, result.Rooms)
 		flushScreen(w)
 
-		input, ok := <-c.GetInput()
-		if !ok {
-			log.Fatal("input channel closed")
-		}
-		input = strings.Trim(input, "\r\n")
-		b := isExit(input, "/q")
-		if b {
-			isLeave = true
-			break
-		}
+		var roomId string
+		isLeave := false
+		for {
+			writeStringToScreen(w, "Enter a room id you want to join or /q to leave\n")
+			writeStringToScreen(w, "In: ")
+			flushScreen(w)
 
-		//Check input is in the list
-		canJoin := false
-		for _, r := range result.Rooms {
-			if strings.Compare(input, r.RoomId) == 0 && r.RoomStatus == status.ROOM_STAUS_WAITING {
-				canJoin = true
+			input, ok := <-c.GetInput()
+			if !ok {
+				log.Fatal("input channel closed")
+			}
+			input = strings.Trim(input, "\r\n")
+			b := isExit(input, "/q")
+			if b {
+				isLeave = true
 				break
 			}
-		}
-		if !canJoin {
-			writeStringToScreen(w, color.Red+"You can not join the room due to room id or room status.\n"+color.Reset)
-			continue
-		}
 
-		roomId = input
+			//Check input is in the list
+			canJoin := false
+			for _, r := range result.Rooms {
+				if strings.Compare(input, r.RoomId) == 0 && r.RoomStatus == status.ROOM_STAUS_WAITING {
+					canJoin = true
+					break
+				}
+			}
+			if !canJoin {
+				writeStringToScreen(w, color.Red+"You can not join the room due to room id or room status.\n"+color.Reset)
+				continue
+			}
+
+			roomId = input
+			break
+		}
+		callback(roomId, isLeave)
 		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
+		return
 	}
-	callback(roomId, isLeave)
 
 }
 
-func joinRoomResultPage(c client.IClient, data []byte, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
+func joinRoomResultPage(c client.IClient, resp *packet.BasicResponseType, callback func(mode uint, roomId string), sendingMessage func(roomId, message string)) {
 	ClearScreen()
-	var result packet.JoinRoomResp
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
-		return
-	}
-	w := bufio.NewWriter(os.Stdout)
+	switch resp.Code {
+	case code.SUCCESS:
+		w := bufio.NewWriter(os.Stdout)
 
-	if result.Code == code.REQUEST_FAILED {
-		writeStringToScreen(w, fmt.Sprintln(color.Red+result.Message+color.Reset))
-		writeStringToScreen(w, "enter any key and leave\n")
+		var result packet.JoinRoomResp
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		roomInfoPage(w, c, false, result.GameRoomInfoPacket, callback, sendingMessage)
 		flushScreen(w)
-		_ = <-c.GetInput()
-		c.SetRenderEvent(renderEvent.HOME_PAGE, nil)
-		c.SetRenderEventName(renderEvent.HOME_PAGE)
+		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
 		return
 	}
-
-	roomInfoPage(w, c, false, result.GameRoomInfoPacket, callback, sendingMessage)
-	flushScreen(w)
 }
 
 func gameStartingPage() {
@@ -326,53 +338,89 @@ func gameStartingPage() {
 	flushScreen(w)
 }
 
-func endingGamePage(c client.IClient, data []byte, callback func(roomId string)) {
-	var result packet.EndingGameResp
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
+func endingGamePage(c client.IClient, resp *packet.BasicResponseType, callback func(roomId string)) {
+	ClearScreen()
+	switch resp.Code {
+	case code.SUCCESS:
+		var result packet.EndingGameResp
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+		w := bufio.NewWriter(os.Stdout)
+
+		headerInfo(w)
+		writeStringToScreen(w, result.OutputColorASNI+string(result.Message)+color.Reset)
+		writeStringToScreen(w, "Enter any key to leave.\n")
+		flushScreen(w)
+		_, ok := <-c.GetInput()
+		if !ok {
+			log.Fatal("input channel closed")
+		}
+		callback(result.RoomId)
+		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
 		return
 	}
-	w := bufio.NewWriter(os.Stdout)
 
-	headerInfo(w)
-	writeStringToScreen(w, result.OutputColorASNI+string(result.Message)+color.Reset)
+}
+
+func gamingOutPut(c client.IClient, resp *packet.BasicResponseType) {
+	switch resp.Code {
+	case code.SUCCESS:
+		var result packet.PlayingGameResp
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+		fmt.Print(result.OutputColorASNI + string(result.GameMessage) + color.Reset)
+		if result.IsWritable {
+			c.SetIsWritable()
+		}
+
+		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
+		return
+	}
+}
+
+func notificationOutput(c client.IClient, resp *packet.BasicResponseType) {
+	switch resp.Code {
+	case code.SUCCESS:
+		var result packet.NotifyPlayer
+		if err := serializex.Unmarshal(resp.Data, &result); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		switch result.Type {
+		case notificationType.ROOM_CHAT:
+			fmt.Print(color.Yellow + string(result.Message) + color.Reset)
+			break
+		case notificationType.SYS:
+			fmt.Print(color.Red + string(result.Message) + color.Reset)
+			break
+		default:
+			fmt.Print(string(result.Message))
+		}
+
+		break
+	case code.REQUEST_FAILED:
+		requestErrorHandler(c, resp.Message)
+		return
+	}
+}
+
+func requestErrorHandler(c client.IClient, msg string) {
+	w := bufio.NewWriter(os.Stdout)
+	writeStringToScreen(w, color.Red+msg+color.Reset+"\n")
 	writeStringToScreen(w, "Enter any key to leave.\n")
 	flushScreen(w)
-	_, ok := <-c.GetInput()
-	if !ok {
-		log.Fatal("input channel closed")
-	}
-	callback(result.RoomId)
-}
 
-func gamingOutPut(c client.IClient, data []byte) {
-	var result packet.PlayingGameResp
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
-		return
-	}
-	fmt.Print(result.OutputColorASNI + string(result.GameMessage) + color.Reset)
-	if result.IsWritable {
-		c.SetIsWritable()
-	}
-
-}
-
-func notificationOutput(data []byte) {
-	var result packet.NotifyPlayer
-	if err := serializex.Unmarshal(data, &result); err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	switch result.Type {
-	case notificationType.ROOM_CHAT:
-		fmt.Print(color.Yellow + string(result.Message) + color.Reset)
-		break
-	case notificationType.SYS:
-		fmt.Print(color.Red + string(result.Message) + color.Reset)
-		break
-	default:
-		fmt.Print(string(result.Message))
-	}
+	_ = <-c.GetInput()
+	c.SetRenderEvent(renderEvent.HOME_PAGE, nil)
+	c.SetRenderEventName(renderEvent.HOME_PAGE)
+	return
 }

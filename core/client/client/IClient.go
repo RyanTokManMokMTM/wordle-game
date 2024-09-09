@@ -1,6 +1,9 @@
 package client
 
-import "github.com/RyanTokManMokMTM/wordle-game/core/client/internal/types"
+import (
+	"github.com/RyanTokManMokMTM/wordle-game/core/client/internal/types"
+	"github.com/RyanTokManMokMTM/wordle-game/core/common/types/packet"
+)
 
 type IClient interface {
 	Run()
@@ -10,7 +13,7 @@ type IClient interface {
 
 	SetUserId(id string)
 	SetUserName(name string)
-	SetRenderEvent(eventType string, data []byte)
+	SetRenderEvent(eventType string, data *packet.BasicResponseType)
 	SetIsWritable()
 	SetRenderEventName(eventType string)
 

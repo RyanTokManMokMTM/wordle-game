@@ -199,7 +199,7 @@ func (rd *Render) onListen() {
 				gamingOutPut(rd.c, event.Data)
 				break
 			case renderEvent.GAME_NOTIFICATION:
-				notificationOutput(event.Data)
+				notificationOutput(rd.c, event.Data)
 				break
 			case renderEvent.ENED_GAME:
 				go endingGamePage(rd.c, event.Data, func(roomId string) {

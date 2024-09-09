@@ -233,7 +233,7 @@ func (gs *GameServer) eventListener() {
 				return
 			}
 			for _, p := range players {
-				p.GetClient().SendToClient(packetType.END_GAME, dataBytes)
+				p.GetClient().SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.END_GAME, dataBytes)
 			}
 
 		}
@@ -292,7 +292,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		}
 
 		resp := packet.CreateRoomResp{
-			Code:               code.SUCCESS,
 			GameRoomInfoPacket: roomInfo,
 		}
 
@@ -301,7 +300,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-		u.SendToClient(packetType.CREATE_ROOM, dataBytes)
+		u.SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.CREATE_ROOM, dataBytes)
 		break
 	case packetType.ROOM_LIST_INFO:
 		log.Println("Received an message of create room")
@@ -332,7 +331,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		}
 
 		resp := packet.GetRoomListInfoResp{
-			Code:  code.SUCCESS,
 			Rooms: rooms,
 		}
 
@@ -341,7 +339,8 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-		u.SendToClient(packetType.ROOM_LIST_INFO, dataBytes)
+
+		u.SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.ROOM_LIST_INFO, dataBytes)
 		break
 	case packetType.JOIN_ROOM:
 		//Join to an existing room
@@ -367,17 +366,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 
 		if strings.Compare(room.GetRoomStatus(), status.ROOM_STAUS_PLAYING) == 0 {
 			//Room is now playing, can not join.
-			resp := packet.JoinRoomResp{
-				Code:    code.REQUEST_FAILED,
-				Message: "Game room started, you cannot join.",
-			}
-
-			dataBytes, err := serializex.Marshal(&resp)
-			if err != nil {
-				log.Println("Serialized error : ", err)
-				return
-			}
-			u.SendToClient(packetType.JOIN_ROOM, dataBytes)
+			u.SendToClient(code.REQUEST_FAILED, "Game room started, you cannot join.", packetType.JOIN_ROOM, nil)
 			return
 		}
 
@@ -397,7 +386,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		}
 
 		resp := packet.JoinRoomResp{
-			Code:               code.SUCCESS,
 			GameRoomInfoPacket: roomInfo,
 		}
 
@@ -406,7 +394,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			log.Println("Serialized error : ", err)
 			return
 		}
-		u.SendToClient(packetType.JOIN_ROOM, dataBytes)
+		u.SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.JOIN_ROOM, dataBytes)
 
 		for _, p := range room.GetAllPlayer() {
 			if strings.Compare(p.GetClient().GetClientId(), u.GetClientId()) != 0 {
@@ -431,16 +419,6 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 
 		}
 
-		resp := packet.ExitRoomResp{
-			Code: code.SUCCESS,
-		}
-
-		dataBytes, err := serializex.Marshal(&resp)
-		if err != nil {
-			log.Println("Serialized error : ", err)
-			return
-		}
-
 		room, ok := gs.roomManager.GetGameRoom(exitRoomReq.RoomId)
 		if !ok {
 			log.Printf("Room %s not exist or removed\n", exitRoomReq.RoomId)
@@ -448,7 +426,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		}
 
 		room.RemovePlayer(u.GetClientId())
-		u.SendToClient(packetType.EXIT_ROOM, dataBytes)
+		u.SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.EXIT_ROOM, nil)
 
 		if len(room.GetAllPlayer()) == 0 {
 			log.Println("Empty player")
@@ -484,7 +462,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 		players := s.GetAllPlayer()
 
 		for _, p := range players {
-			p.GetClient().SendToClient(packetType.START_GAME, pk.Data)
+			p.GetClient().SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.START_GAME, pk.Data)
 			go s.StartGame(p) //All User start at same time
 		}
 
@@ -540,7 +518,7 @@ func (gs *GameServer) handleMessage(pk packet.BasicPacket) {
 			if strings.Compare(sender.GetClientId(), p.GetClient().GetClientId()) == 0 {
 				continue
 			}
-			p.GetClient().SendToClient(packetType.GAME_NOTIFICATION, dataBytes)
+			p.GetClient().SendToClient(code.SUCCESS, code.CodeToMessage(code.SUCCESS), packetType.GAME_NOTIFICATION, dataBytes)
 		}
 
 		break
